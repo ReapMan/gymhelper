@@ -267,7 +267,7 @@ fun MenuScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Создатель: reapman",
+                            text = "Создатели: reapman & Antigravity",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary

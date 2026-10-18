@@ -13,6 +13,7 @@
 [![DB](https://img.shields.io/badge/Storage-SQLite%20WAL-00E5FF?style=for-the-badge&logo=sqlite)](https://www.sqlite.org/wal.html)
 [![License](https://img.shields.io/badge/License-MIT-F50057?style=for-the-badge)](LICENSE)
 [![Creator](https://img.shields.io/badge/Creator-reapman-FF9100?style=for-the-badge)](https://github.com/ReapMan)
+[![AI Assistant](https://img.shields.io/badge/AI%20Pair%20Programmer-Antigravity%20(DeepMind)-7C4DFF?style=for-the-badge&logo=google)](https://deepmind.google)
 
 <br/>
 
@@ -116,8 +117,10 @@ cd gymhelper
 
 ---
 
-## 👤 Создатель
+## 👥 Создатели
 
-Разработано: **[reapman](https://github.com/ReapMan)**  
+- 👨‍💻 **Автор и ведущий разработчик:** [reapman](https://github.com/ReapMan)
+- 🤖 **AI Pair Programmer:** [Antigravity](https://deepmind.google) (Google DeepMind)
+
 Лицензия: [MIT License](LICENSE)  
 GymHelper — твой персональный напарник в зале.
