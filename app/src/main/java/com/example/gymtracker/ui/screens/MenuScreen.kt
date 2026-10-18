@@ -6,7 +6,9 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -32,6 +35,7 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -54,6 +58,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +66,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -69,7 +76,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.ui.GymViewModel
+import com.example.gymtracker.ui.theme.AppThemeColor
 import com.example.gymtracker.ui.theme.BackgroundDark
+import com.example.gymtracker.ui.theme.BorderDark
 import com.example.gymtracker.ui.theme.PrimaryNeon
 import com.example.gymtracker.ui.theme.SecondaryAccent
 import com.example.gymtracker.ui.theme.SurfaceDark
@@ -235,7 +244,7 @@ fun MenuScreen(
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
                                 Text("Настройки", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Таймеры, поведение отдыха", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Цветовая схема, таймеры, поведение отдыха", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
@@ -264,7 +273,7 @@ fun MenuScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Версия 1.0.0 (Stable)",
+                            text = "Версия 1.0.1 (Stable)",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -314,9 +323,12 @@ fun MenuScreen(
         }
 
         MenuSubScreen.SETTINGS -> {
+            val currentThemeColor by viewModel.themeColor.collectAsState()
+
             Column(
                 modifier = modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -328,9 +340,99 @@ fun MenuScreen(
                     Text("Настройки", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
 
+                // СЕКЦИЯ: ВЫБОР ЦВЕТОВОЙ СХЕМЫ
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text("Цветовая схема", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(
+                                    "Акцентный цвет кнопок, иконок и элементов",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AppThemeColor.entries.forEach { themeOption ->
+                                val isSelected = currentThemeColor == themeOption
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { viewModel.setThemeColor(themeOption) },
+                                    color = if (isSelected) SurfaceVariantDark else SurfaceDark,
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = if (isSelected) {
+                                        BorderStroke(1.5.dp, themeOption.primary)
+                                    } else {
+                                        BorderStroke(1.dp, BorderDark)
+                                    }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(24.dp)
+                                                    .clip(CircleShape)
+                                                    .background(themeOption.primary)
+                                                    .border(
+                                                        2.dp,
+                                                        if (isSelected) Color.White.copy(alpha = 0.9f) else Color.Transparent,
+                                                        CircleShape
+                                                    )
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(
+                                                text = themeOption.title,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                fontSize = 14.sp,
+                                                color = if (isSelected) themeOption.primary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = "Выбрано",
+                                                tint = themeOption.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // СЕКЦИЯ: ТАЙМЕРЫ И ПОВЕДЕНИЕ
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = SurfaceDark)
                 ) {
                     Row(
@@ -342,6 +444,7 @@ fun MenuScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Авто-отключение отдыха", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 "Сбрасывать секундомер отдыха при переходе к следующему упражнению",
                                 fontSize = 12.sp,
@@ -351,7 +454,7 @@ fun MenuScreen(
                         Switch(
                             checked = autoStopRest,
                             onCheckedChange = { autoStopRest = it },
-                            colors = SwitchDefaults.colors(checkedThumbColor = PrimaryNeon)
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
                         )
                     }
                 }

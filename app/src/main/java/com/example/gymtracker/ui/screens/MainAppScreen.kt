@@ -1,5 +1,6 @@
 package com.example.gymtracker.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,7 +41,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.model.WorkoutSession
@@ -165,7 +169,10 @@ fun WorkoutRunningBanner(
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
             .clickable { onReturn() }
-            .border(1.dp, PrimaryNeon.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+            .border(
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)),
+                shape = RoundedCornerShape(16.dp)
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceDark)
     ) {
@@ -176,20 +183,23 @@ fun WorkoutRunningBanner(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Левая часть: Иконка + Название тренировки + Статус
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 10.dp)
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = PrimaryNeon.copy(alpha = 0.2f),
-                    modifier = Modifier.size(36.dp)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                    modifier = Modifier.size(38.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.FitnessCenter,
                             contentDescription = null,
-                            tint = PrimaryNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -197,42 +207,54 @@ fun WorkoutRunningBanner(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Идет тренировка",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = PrimaryNeon
-                        )
-                        Text(
-                            text = " • ${formatSeconds(workoutSeconds)}",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = session.title,
+                        text = session.title.ifBlank { "Текущая тренировка" },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Идет тренировка",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
                         maxLines = 1
                     )
                 }
             }
 
-            Button(
-                onClick = onReturn,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryNeon,
-                    contentColor = BackgroundDark
-                ),
+            // Правая часть: Горизонтальный таймер-чип с моноширинным шрифтом + кнопка перехода
+            Surface(
                 shape = RoundedCornerShape(12.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                modifier = Modifier.clickable { onReturn() }
             ) {
-                Text("К тренировке", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = formatSeconds(workoutSeconds),
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        softWrap = false,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = "К тренировке",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }

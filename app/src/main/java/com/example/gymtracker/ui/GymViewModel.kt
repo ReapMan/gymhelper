@@ -16,6 +16,7 @@ import com.example.gymtracker.data.model.WorkoutSession
 import com.example.gymtracker.data.model.WorkoutSet
 import com.example.gymtracker.data.model.WorkoutTemplate
 import com.example.gymtracker.data.model.WorkoutTemplateItem
+import com.example.gymtracker.ui.theme.AppThemeColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,18 @@ class GymViewModel(
 
     fun switchTab(tab: ScreenTab) {
         _currentTab.value = tab
+    }
+
+    // Цветовая тема приложения
+    private val themePrefs = context?.getSharedPreferences("gym_theme_prefs", Context.MODE_PRIVATE)
+    private val _themeColor = MutableStateFlow(
+        AppThemeColor.fromId(themePrefs?.getString("theme_color_id", AppThemeColor.NEON_GREEN.id))
+    )
+    val themeColor: StateFlow<AppThemeColor> = _themeColor.asStateFlow()
+
+    fun setThemeColor(color: AppThemeColor) {
+        _themeColor.value = color
+        themePrefs?.edit()?.putString("theme_color_id", color.id)?.apply()
     }
 
     // Свернута ли тренировка в фон (позволяет пользоваться вкладками навигации)
