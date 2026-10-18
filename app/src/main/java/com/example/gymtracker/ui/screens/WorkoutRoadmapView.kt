@@ -79,6 +79,7 @@ fun WorkoutRoadmapView(
     val sessionSets by viewModel.activeSessionSets.collectAsState()
     val workoutSeconds by viewModel.workoutSeconds.collectAsState()
     val selectedExercise by viewModel.selectedExercise.collectAsState()
+    val isWorkoutMinimized by viewModel.isWorkoutMinimized.collectAsState()
 
     var showAddExerciseDialog by remember { mutableStateOf(false) }
     var showFinishDialog by remember { mutableStateOf(false) }
@@ -112,20 +113,22 @@ fun WorkoutRoadmapView(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        IconButton(
-                            onClick = { viewModel.minimizeWorkout() },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(SurfaceVariantDark)
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "В меню",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
+                        if (!isWorkoutMinimized) {
+                            IconButton(
+                                onClick = { viewModel.minimizeWorkout() },
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(SurfaceVariantDark)
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "В меню",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
                                 text = session.title,
