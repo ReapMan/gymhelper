@@ -1,0 +1,145 @@
+package com.example.gymtracker.ui.i18n
+
+val StringsKa = AppStrings(
+    // Bottom Navigation
+    navWorkout = "ვარჯიში",
+    navPrograms = "პროგრამები",
+    navHistory = "ისტორია",
+    navMenu = "მენიუ",
+
+    // Live Workout & Roadmap
+    startWorkout = "ვარჯიშის დაწყება",
+    startLiveSubtitle = "დააჭირეთ «+» ან აირჩიეთ მენიუდან:",
+    startLiveButton = "თავისუფალი დაწყება",
+    startFromTemplateButton = "პროგრამის არჩევა",
+    recordPastButton = "წინა ვარჯიშის ჩაწერა",
+    workoutPlanEmpty = "ვარჯიშის გეგმა ცარიელია",
+    workoutPlanEmptyDesc = "დააჭირეთ «+» ზემოთ სცენარში ვარჯიშების დასამატებლად.",
+    selectExercise = "ვარჯიშის არჩევა",
+    addExercise = "ვარჯიშის დამატება",
+    finishWorkout = "ვარჯიშის დასრულება",
+    finishWorkoutDialogTitle = "დავასრულოთ ვარჯიში?",
+    finishWorkoutDialogMsg = "ვარჯიში შეინახება ისტორიაში.",
+    workoutNotesPlaceholder = "შენიშვნები (როგორ გრძნობდით თავს, პამპი და ა.შ.)",
+    finishBtn = "დასრულება",
+    cancelBtn = "გაუქმება",
+    deleteExerciseConfirmTitle = "წავშალოთ ვარჯიში?",
+    deleteExerciseConfirmMsg = "წაიშალოს <%s> მიმდინარე ვარჯიშიდან?",
+    replaceExercise = "ვარჯიშის შეცვლა",
+    deleteFromPlan = "გეგმიდან წაშლა",
+    moveUp = "ზემოთ გადატანა",
+    moveDown = "ქვემოთ გადატანა",
+    defaultWorkoutTitle = "ვარჯიში",
+    totalDuration = "საერთო ხანგრძლივობა",
+    renameWorkout = "ვარჯიშის სახელის შეცვლა",
+    renameWorkoutPlaceholder = "მაგ: მკერდი + ტრიცეფსი",
+    saveBtn = "შენახვა",
+
+    // Minimized Banner & Status
+    workoutRunning = "მიმდინარეობს ვარჯიში",
+    returnToWorkout = "ვარჯიშზე დაბრუნება",
+
+    // Focus View (Active Exercise)
+    toRoadmap = "სცენარზე დაბრუნება",
+    exitFocus = "ფოკუსიდან გამოსვლა",
+    setLabel = "მისვლა",
+    repsLabel = "გამეორება",
+    weightLabel = "წონა (კგ)",
+    kgUnit = "კგ",
+    repsUnit = "გამ.",
+    startSet = "მისვლის დაწყება",
+    finishSet = "მისვლის დასრულება",
+    recordedSets = "ჩაწერილი მისვლები",
+    noSetsYet = "მისვლები ჯერ არ არის.",
+    noSetsYetDesc = "დააჭირეთ ქვემოთ ღილაკს პირველი მისვლის დასაწყებად.",
+    restTimer = "დასვენება",
+    restTimerRunning = "მიმდინარეობს დასვენება",
+    prevWorkoutHistory = "წინა ვარჯიში:",
+    noHistoryYet = "ეს ვარჯიში ადრე არ შესრულებულა",
+    editNotes = "შენიშვნა ვარჯიშზე",
+    notesSaved = "შენიშვნა შენახულია",
+    variationsTitle = "ვარიაციები / მოჭიდება",
+    standardVariation = "სტანდარტი",
+    addVariationBtn = "+ ვარიაცია",
+    addVariationTitle = "ახალი ვარიაცია",
+    variationNamePlaceholder = "მაგ: ვიწრო მოჭიდება, დროპსეტი",
+
+    // Set Types & Tags
+    setTypeNormal = "ჩვეულებრივი",
+    setTypeWarmup = "გახურება",
+    setTypeDrop = "დროპსეტი",
+    setTypeFailure = "ჩავარდნამდე",
+    tagEasy = "მარტივი",
+    tagFailure = "ჩავარდნა",
+    tagWarmup = "გახურება",
+    tagDrop = "დროპი",
+
+    // Edit Set Dialog
+    editSetTitle = "მისვლის რედაქტირება",
+    deleteSetConfirmTitle = "წავშალოთ მისვლა?",
+    deleteSetConfirmMsg = "დარწმუნებული ხართ, რომ გსურთ ამ მისვლის წაშლა?",
+    deleteBtn = "წაშლა",
+
+    // Exercise Picker
+    chooseExerciseTitle = "ვარჯიშის არჩევა",
+    searchPlaceholder = "ძებნა სახელით...",
+    allMuscleGroups = "ყველა კუნთი",
+    createCustomExercise = "+ საკუთარი ვარჯიში",
+    addSelectedCount = "ვარჯიშში დამატება (%d)",
+    noExercisesFound = "ვარჯიში ვერ მოიძებნა",
+    newExerciseNamePlaceholder = "ვარჯიშის სახელი",
+    selectMuscleGroup = "კუნთების ჯგუფი",
+    createAndAddBtn = "შექმნა და არჩევა",
+
+    // Templates / Programs
+    programsTitle = "პროგრამები",
+    newFolderBtn = "საქაღალდე",
+    newProgramBtn = "ვარჯიში",
+    startThisWorkout = "ამ ვარჯიშის დაწყება",
+    noProgramsYet = "პროგრამები ჯერ არ არის",
+    editProgramTitle = "პროგრამის რედაქტირება",
+    deleteProgramConfirmTitle = "წავშალოთ პროგრამა?",
+    exercisesInPlan = "ვარჯიში გეგმაში",
+
+    // History
+    historyTitle = "ისტორია",
+    totalWorkouts = "სულ ვარჯიშები",
+    noHistoryTitle = "ისტორია ცარიელია",
+    noHistoryDesc = "დაასრულეთ თუნდაც ერთი ვარჯიში სტატისტიკის სანახავად.",
+    exportForAi = "ექსპორტი AI-სთვის",
+
+    // Menu & Settings
+    menuTitle = "მენიუ",
+    exerciseDatabase = "ვარჯიშების ბაზა",
+    exerciseDatabaseDesc = "ვარჯიშების ბარათები, ვარიაციები, იკონები",
+    aiExportTitle = "ექსპორტი AI-სთვის (AI Export)",
+    aiExportDesc = "გატანა ChatGPT, Claude და Gemini-სთვის (MD / JSON)",
+    backupRestoreTitle = "სარეზერვო ასლი",
+    backupRestoreDesc = "ბაზის ექსპორტი JSON-ში, იმპორტი, ავტოშენახვა",
+    settingsTitle = "პარამეტრები",
+    settingsDesc = "ფერების სქემა, ტაიმერები, დასვენება",
+    colorSchemeTitle = "ფერების სქემა",
+    colorSchemeDesc = "აირჩიეთ აპლიკაციის სპორტული აქცენტი",
+    languageSettingTitle = "აპლიკაციის ენა",
+    languageSettingDesc = "აირჩიეთ ინტერფეისის ენა",
+    notificationSettingTitle = "შეტყობინება ფარდაში",
+    notificationSettingDesc = "წამმზომი და დასვენების ტაიმერი შეტყობინებების პანელში",
+    creatorsLabel = "შემქმნელები: reapman & Antigravity",
+    appVersionLabel = "ვერსია 1.1.0 (Stable)",
+
+    // Notification Texts
+    notifChannelName = "აქტიური ვარჯიში",
+    notifWorkoutActive = "ვარჯიში აქტიურია",
+    notifRestTime = "⏱ დასვენება:",
+    notifOpenApp = "დარბაზის გახსნა",
+
+    // Muscle Groups
+    mgChest = "მკერდი",
+    mgBack = "ზურგი",
+    mgLegs = "ფეხები",
+    mgShoulders = "მხრები",
+    mgBiceps = "ბიცეფსი",
+    mgTriceps = "ტრიცეფსი",
+    mgAbs = "პრესი",
+    mgOther = "სხვა"
+)

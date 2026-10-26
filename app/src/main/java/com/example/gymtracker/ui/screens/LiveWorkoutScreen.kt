@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.ScreenTab
 import com.example.gymtracker.ui.components.PastWorkoutDialog
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.BackgroundDark
 
 @Composable
@@ -95,6 +96,8 @@ private fun StartWorkoutPanel(
     onRecordPast: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+
     Column(
         modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,7 +121,7 @@ private fun StartWorkoutPanel(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Начать тренировку",
+            text = strings.startWorkout,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black
         )
@@ -126,14 +129,14 @@ private fun StartWorkoutPanel(
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = "Выбери формат записи для зала:",
+            text = strings.startLiveSubtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Быстрый старт
+        // Свободный старт
         Button(
             onClick = onStartLive,
             modifier = Modifier
@@ -143,12 +146,12 @@ private fun StartWorkoutPanel(
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Свободная тренировка", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(strings.startLiveButton, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Из заготовленной программы
+        // Из программы
         Button(
             onClick = onStartFromTemplate,
             modifier = Modifier
@@ -160,7 +163,7 @@ private fun StartWorkoutPanel(
             Icon(Icons.Default.Bookmark, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                "Запустить из программы",
+                strings.startFromTemplateButton,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -169,17 +172,17 @@ private fun StartWorkoutPanel(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Записать прошедшую тренировку
+        // Записать прошедшую
         OutlinedButton(
             onClick = onRecordPast,
             modifier = Modifier
                 .fillMaxWidth(0.85f)
-                .height(50.dp),
+                .height(52.dp),
             shape = RoundedCornerShape(14.dp)
         ) {
             Icon(Icons.Default.History, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Записать прошедшую", fontSize = 15.sp)
+            Text(strings.recordPastButton, fontSize = 16.sp)
         }
     }
 }

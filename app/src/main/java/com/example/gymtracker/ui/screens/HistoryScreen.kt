@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.model.WorkoutSession
 import com.example.gymtracker.data.model.WorkoutSet
 import com.example.gymtracker.ui.GymViewModel
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.SurfaceDark
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -65,6 +66,7 @@ fun HistoryScreen(
     viewModel: GymViewModel,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val completedSessions by viewModel.completedSessions.collectAsState()
     val allExercises by viewModel.exercises.collectAsState()
 
@@ -77,13 +79,13 @@ fun HistoryScreen(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "📜 История тренировок пуста",
+                    text = "📜 ${strings.noHistoryTitle}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Здесь будут сохраняться твои завершенные тренировки с подходами, весами и заметками.",
+                    text = strings.noHistoryDesc,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -112,6 +114,7 @@ private fun HistorySessionCard(
     viewModel: GymViewModel,
     exercises: List<com.example.gymtracker.data.model.Exercise>
 ) {
+    val strings = LocalAppStrings.current
     var expanded by remember { mutableStateOf(false) }
     var sets by remember { mutableStateOf<List<WorkoutSet>>(emptyList()) }
     var showMenu by remember { mutableStateOf(false) }
@@ -262,7 +265,7 @@ private fun HistorySessionCard(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
-                                            text = "Сет ${set.setNumber}:  ${if (set.weightKg % 1 == 0f) set.weightKg.toInt() else set.weightKg} кг × ${set.reps}",
+                                            text = "${strings.setLabel} ${set.setNumber}:  ${if (set.weightKg % 1 == 0f) set.weightKg.toInt() else set.weightKg} ${strings.kgUnit} × ${set.reps}",
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = FontWeight.Medium
                                         )
@@ -344,11 +347,11 @@ private fun HistorySessionCard(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Удалить")
+                    Text(strings.deleteBtn)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) { Text("Отмена") }
+                TextButton(onClick = { showDeleteConfirmDialog = false }) { Text(strings.cancelBtn) }
             }
         )
     }

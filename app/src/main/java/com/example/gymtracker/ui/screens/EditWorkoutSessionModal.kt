@@ -56,6 +56,7 @@ import com.example.gymtracker.data.model.WorkoutSet
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.components.AddSetDialog
 import com.example.gymtracker.ui.components.EditSetDialog
+import com.example.gymtracker.ui.components.ExercisePickerModal
 import com.example.gymtracker.ui.theme.PrimaryNeon
 import com.example.gymtracker.ui.theme.SurfaceDark
 import com.example.gymtracker.ui.theme.SurfaceVariantDark
@@ -78,6 +79,7 @@ fun EditWorkoutSessionModal(
     var sessionSets by remember { mutableStateOf<List<WorkoutSet>>(emptyList()) }
     val allExercises by viewModel.exercises.collectAsState()
     val allVariations by viewModel.allVariations.collectAsState()
+    val muscleGroups by viewModel.muscleGroups.collectAsState()
 
     var showAddExerciseDialog by remember { mutableStateOf(false) }
     var exerciseForNewSet by remember { mutableStateOf<Exercise?>(null) }
@@ -397,30 +399,22 @@ fun EditWorkoutSessionModal(
 
     // ВЫБОР УПРАЖНЕНИЯ ДЛЯ ДОБАВЛЕНИЯ В ТРЕНИРОВКУ
     if (showAddExerciseDialog) {
-        AlertDialog(
-            onDismissRequest = { showAddExerciseDialog = false },
-            title = { Text("Выбери упражнение") },
-            text = {
-                LazyColumn(modifier = Modifier.height(300.dp)) {
-                    items(allExercises) { ex ->
-                        Card(
-                            onClick = {
-                                exerciseForNewSet = ex
-                                showAddExerciseDialog = false
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 3.dp),
-                            colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
-                        ) {
-                            Text(ex.name, modifier = Modifier.padding(10.dp), fontSize = 13.sp)
-                        }
-                    }
+        ExercisePickerModal(
+            allExercises = allExercises,
+            muscleGroups = muscleGroups,
+            onDismiss = { showAddExerciseDialog = false },
+            onSelectExercises = { selectedList ->
+                val first = selectedList.firstOrNull()
+                if (first != null) {
+                    exerciseForNewSet = first
                 }
+                showAddExerciseDialog = false
             },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showAddExerciseDialog = false }) { Text("Отмена") }
+            onCreateCustomExercise = { name, groupId ->
+                viewModel.createCustomExercise(name, groupId) { created ->
+                    exerciseForNewSet = created
+                    showAddExerciseDialog = false
+                }
             }
         )
     }

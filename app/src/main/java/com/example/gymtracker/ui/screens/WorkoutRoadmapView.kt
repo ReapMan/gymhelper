@@ -2,6 +2,7 @@ package com.example.gymtracker.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,14 +10,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +31,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
@@ -62,6 +66,8 @@ import com.example.gymtracker.data.model.Exercise
 import com.example.gymtracker.data.model.WorkoutSession
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.components.ExerciseIcons
+import com.example.gymtracker.ui.components.ExercisePickerModal
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.BackgroundDark
 import com.example.gymtracker.ui.theme.BorderDark
 import com.example.gymtracker.ui.theme.PrimaryNeon
@@ -74,8 +80,11 @@ fun WorkoutRoadmapView(
     session: WorkoutSession,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+
     val workoutPlan by viewModel.workoutPlan.collectAsState()
     val allExercises by viewModel.exercises.collectAsState()
+    val muscleGroups by viewModel.muscleGroups.collectAsState()
     val sessionSets by viewModel.activeSessionSets.collectAsState()
     val workoutSeconds by viewModel.workoutSeconds.collectAsState()
     val selectedExercise by viewModel.selectedExercise.collectAsState()
@@ -83,6 +92,7 @@ fun WorkoutRoadmapView(
 
     var showAddExerciseDialog by remember { mutableStateOf(false) }
     var showFinishDialog by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf(false) }
     var exerciseToReplace by remember { mutableStateOf<Exercise?>(null) }
     var exerciseToDeleteFromPlan by remember { mutableStateOf<Exercise?>(null) }
 
@@ -93,16 +103,21 @@ fun WorkoutRoadmapView(
         return if (h > 0) "%02d:%02d:%02d".format(h, m, s) else "%02d:%02d".format(m, s)
     }
 
-    BackHandler {
+    BackHandler(enabled = !isWorkoutMinimized) {
         viewModel.minimizeWorkout()
     }
 
     Box(modifier = modifier.fillMaxSize().background(BackgroundDark)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 100.dp)
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 12.dp,
+                bottom = 120.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            )
         ) {
-            // ШАПКА
+            // ШАПКА ТРЕНИРОВКИ
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -123,30 +138,46 @@ fun WorkoutRoadmapView(
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "В меню",
+                                    contentDescription = strings.returnToWorkout,
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                         }
-                        Column {
-                            Text(
-                                text = session.title,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1
-                            )
+
+                        // Название тренировки + возможность быстро переименовать
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showRenameDialog = true }
+                                .padding(vertical = 2.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = session.title.ifBlank { strings.defaultWorkoutTitle },
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = strings.renameWorkout,
+                                    tint = MaterialTheme.colorScheme.outline,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Общая длительность ${formatSeconds(workoutSeconds)}",
-                                style = MaterialTheme.typography.bodySmall,
+                                text = "${strings.totalDuration} ${formatSeconds(workoutSeconds)}",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    // Кнопка "+" добавить упражнение в сценарий
+                    // Кнопка "+" для добавления упражнения
                     IconButton(
                         onClick = { showAddExerciseDialog = true },
                         modifier = Modifier
@@ -156,12 +187,13 @@ fun WorkoutRoadmapView(
                     ) {
                         Icon(
                             Icons.Default.Add,
-                            contentDescription = "Добавить упражнение",
+                            contentDescription = strings.addExercise,
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             // ПУСТОЙ ПЛАН
@@ -173,43 +205,52 @@ fun WorkoutRoadmapView(
                         colors = CardDefaults.cardColors(containerColor = SurfaceDark)
                     ) {
                         Column(
-                            modifier = Modifier.padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "План тренировки пуст",
+                                text = strings.workoutPlanEmpty,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Нажми «+» вверху, чтобы добавить упражнения в сценарий.",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                text = strings.workoutPlanEmptyDesc,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(18.dp))
                             Button(
                                 onClick = { showAddExerciseDialog = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null)
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Выбрать упражнение")
+                                Text(
+                                    strings.selectExercise,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
                 }
             } else {
-                // СПИСОК УПРАЖНЕНИЙ БЕЗ БЛОКОВ ОТДЫХА
+                // СПИСОК УПРАЖНЕНИЙ В РОАДМАПЕ
                 itemsIndexed(workoutPlan, key = { _, ex -> ex.id }) { index, exercise ->
                     val setsForEx = sessionSets.filter { it.exerciseId == exercise.id }
-                    val isCompleted = setsForEx.isNotEmpty()
+                    val isCompleted = setsForEx.isNotEmpty() && setsForEx.all { it.isCompleted }
                     val isActive = selectedExercise?.id == exercise.id
 
                     RoadmapExerciseItem(
-                        exercise = exercise,
                         index = index,
                         totalCount = workoutPlan.size,
+                        exercise = exercise,
                         setsCount = setsForEx.size,
                         isCompleted = isCompleted,
                         isActive = isActive,
@@ -219,32 +260,24 @@ fun WorkoutRoadmapView(
                         onReplace = { exerciseToReplace = exercise },
                         onDelete = { exerciseToDeleteFromPlan = exercise }
                     )
-
-                    // Непрерывная соединительная линия между упражнениями
-                    if (index < workoutPlan.size - 1) {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 21.dp)
-                                .width(2.dp)
-                                .height(16.dp)
-                                .background(BorderDark)
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }
 
-        // КНОПКА ЗАВЕРШИТЬ СНИЗУ
+        // ЗАКРЕПЛЕННАЯ НИЖНЯЯ КНОПКА «ЗАВЕРШИТЬ ТРЕНИРОВКУ»
+        // ВАЖНО ДЛЯ ASUS ROG И 3 КНОПОК: navigationBarsPadding() поднимает кнопку над системными кнопками
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .navigationBarsPadding(),
             color = BackgroundDark
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
                 Button(
                     onClick = { showFinishDialog = true },
@@ -255,7 +288,7 @@ fun WorkoutRoadmapView(
                     colors = ButtonDefaults.buttonColors(containerColor = SurfaceVariantDark)
                 ) {
                     Text(
-                        "Завершить тренировку",
+                        strings.finishWorkout,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -264,16 +297,58 @@ fun WorkoutRoadmapView(
             }
         }
 
-        // ДИАЛОГ ВЫБОРА УПРАЖНЕНИЯ
+        // ДИАЛОГ ПЕРЕИМЕНОВАНИЯ ТРЕНИРОВКИ
+        if (showRenameDialog) {
+            var newTitle by remember { mutableStateOf(session.title) }
+            AlertDialog(
+                onDismissRequest = { showRenameDialog = false },
+                title = { Text(strings.renameWorkout, fontWeight = FontWeight.Bold) },
+                text = {
+                    OutlinedTextField(
+                        value = newTitle,
+                        onValueChange = { newTitle = it },
+                        label = { Text(strings.renameWorkoutPlaceholder) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.renameActiveSession(newTitle)
+                            showRenameDialog = false
+                        }
+                    ) {
+                        Text(strings.saveBtn)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRenameDialog = false }) {
+                        Text(strings.cancelBtn)
+                    }
+                }
+            )
+        }
+
+        // СОВРЕМЕННЫЙ ВЫБОР УПРАЖНЕНИЙ (МОДАЛЬНЫЙ ЭКРАН С ГРУППАМИ, ЧИПАМИ И МУЛЬТИВЫБОРОМ)
         if (showAddExerciseDialog) {
             ExercisePickerModal(
                 allExercises = allExercises,
+                muscleGroups = muscleGroups,
                 onDismiss = { showAddExerciseDialog = false },
-                onSelect = { ex ->
-                    viewModel.addExerciseToPlan(ex)
+                onSelectExercises = { selectedList ->
+                    viewModel.addExercisesToPlan(selectedList)
                     showAddExerciseDialog = false
-                    if (workoutPlan.isEmpty()) {
-                        viewModel.enterExerciseFocus(ex)
+                    if (workoutPlan.isEmpty() && selectedList.isNotEmpty()) {
+                        viewModel.enterExerciseFocus(selectedList.first())
+                    }
+                },
+                onCreateCustomExercise = { name, mgId ->
+                    viewModel.createCustomExercise(name, mgId) { created ->
+                        viewModel.addExerciseToPlan(created)
+                        if (workoutPlan.isEmpty()) {
+                            viewModel.enterExerciseFocus(created)
+                        }
                     }
                 }
             )
@@ -283,20 +358,23 @@ fun WorkoutRoadmapView(
         if (exerciseToReplace != null) {
             ExercisePickerModal(
                 allExercises = allExercises.filter { it.id != exerciseToReplace!!.id },
+                muscleGroups = muscleGroups,
                 onDismiss = { exerciseToReplace = null },
-                onSelect = { newEx ->
-                    viewModel.replaceExerciseInPlan(exerciseToReplace!!, newEx)
+                onSelectExercises = { selectedList ->
+                    if (selectedList.isNotEmpty()) {
+                        viewModel.replaceExerciseInPlan(exerciseToReplace!!, selectedList.first())
+                    }
                     exerciseToReplace = null
                 }
             )
         }
 
-        // ДИАЛОГ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ УПРАЖНЕНИЯ ИЗ ПЛАНА
+        // ДИАЛОГ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ ИЗ ПЛАНА
         if (exerciseToDeleteFromPlan != null) {
             AlertDialog(
                 onDismissRequest = { exerciseToDeleteFromPlan = null },
-                title = { Text("Удалить из плана?") },
-                text = { Text("Удалить «${exerciseToDeleteFromPlan!!.name}» из текущей тренировки?") },
+                title = { Text(strings.deleteExerciseConfirmTitle) },
+                text = { Text(strings.deleteExerciseConfirmMsg.format(exerciseToDeleteFromPlan!!.name)) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -305,11 +383,13 @@ fun WorkoutRoadmapView(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Удалить")
+                        Text(strings.deleteBtn)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { exerciseToDeleteFromPlan = null }) { Text("Отмена") }
+                    TextButton(onClick = { exerciseToDeleteFromPlan = null }) {
+                        Text(strings.cancelBtn)
+                    }
                 }
             )
         }
@@ -319,16 +399,17 @@ fun WorkoutRoadmapView(
             var finishNotes by remember { mutableStateOf("") }
             AlertDialog(
                 onDismissRequest = { showFinishDialog = false },
-                title = { Text("Завершить тренировку?", fontWeight = FontWeight.Bold) },
+                title = { Text(strings.finishWorkoutDialogTitle, fontWeight = FontWeight.Bold) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Длительность: ${formatSeconds(workoutSeconds)}")
-                        Text("Все подходы сохранены в историю.")
+                        Text("${strings.totalDuration}: ${formatSeconds(workoutSeconds)}")
+                        Text(strings.finishWorkoutDialogMsg)
                         OutlinedTextField(
                             value = finishNotes,
                             onValueChange = { finishNotes = it },
-                            label = { Text("Заметка к тренировке (опционально)") },
-                            modifier = Modifier.fillMaxWidth()
+                            label = { Text(strings.workoutNotesPlaceholder) },
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 3
                         )
                     }
                 },
@@ -337,13 +418,16 @@ fun WorkoutRoadmapView(
                         onClick = {
                             viewModel.finishWorkout(finishNotes)
                             showFinishDialog = false
-                        }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Завершить")
+                        Text(strings.finishBtn, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showFinishDialog = false }) { Text("Продолжить") }
+                    TextButton(onClick = { showFinishDialog = false }) {
+                        Text(strings.cancelBtn)
+                    }
                 }
             )
         }
@@ -352,9 +436,9 @@ fun WorkoutRoadmapView(
 
 @Composable
 private fun RoadmapExerciseItem(
-    exercise: Exercise,
     index: Int,
     totalCount: Int,
+    exercise: Exercise,
     setsCount: Int,
     isCompleted: Boolean,
     isActive: Boolean,
@@ -364,217 +448,169 @@ private fun RoadmapExerciseItem(
     onReplace: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var showMenu by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+    val icon = ExerciseIcons.getIcon(exercise.icon)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .border(
+                width = if (isActive) 1.5.dp else 1.dp,
+                color = if (isActive) MaterialTheme.colorScheme.primary else BorderDark,
+                shape = RoundedCornerShape(14.dp)
+            ),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isActive) SurfaceVariantDark else SurfaceDark
+        )
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(44.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isActive) PrimaryNeon.copy(alpha = 0.2f) else SurfaceVariantDark
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = ExerciseIcons.getIcon(exercise.icon),
-                    contentDescription = null,
-                    tint = if (isActive) PrimaryNeon else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Card(
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .clickable { onClick() },
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.weight(1f)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Surface(
+                    modifier = Modifier.size(38.dp),
+                    shape = CircleShape,
+                    color = if (isCompleted) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    } else {
+                        SurfaceVariantDark
+                    }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (isCompleted) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
                     Text(
                         text = exercise.name,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (isActive) PrimaryNeon else MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (setsCount > 0) "Выполнено: $setsCount подходов" else "Без цели / Начать",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = if (setsCount > 0) "${strings.recordedSets}: $setsCount" else strings.noSetsYet,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (isCompleted) {
+            // ПРАВАЯ ЧАСТЬ: КНОПКИ ВВЕРХ/ВНИЗ И МЕНЮ «ТРИ ТОЧКИ»
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    IconButton(
+                        onClick = onMoveUp,
+                        enabled = index > 0,
+                        modifier = Modifier.size(24.dp)
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Выполнено",
-                            tint = PrimaryNeon,
+                            Icons.Default.KeyboardArrowUp,
+                            contentDescription = strings.moveUp,
+                            tint = if (index > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
                     }
-
-                    // ПРЯМЫЕ КНОПКИ ПЕРЕМЕЩЕНИЯ (ВВЕРХ / ВНИЗ)
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    IconButton(
+                        onClick = onMoveDown,
+                        enabled = index < totalCount - 1,
+                        modifier = Modifier.size(24.dp)
                     ) {
-                        IconButton(
-                            onClick = onMoveUp,
-                            enabled = index > 0,
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowUp,
-                                contentDescription = "Выше",
-                                tint = if (index > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        IconButton(
-                            onClick = onMoveDown,
-                            enabled = index < totalCount - 1,
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Ниже",
-                                tint = if (index < totalCount - 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            contentDescription = strings.moveDown,
+                            tint = if (index < totalCount - 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(2.dp))
+
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = "Menu",
+                            tint = MaterialTheme.colorScheme.outline
+                        )
                     }
 
-                    Spacer(modifier = Modifier.width(2.dp))
-
-                    Box {
-                        IconButton(
-                            onClick = { showMenu = true },
-                            modifier = Modifier.size(30.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.MoreVert,
-                                contentDescription = "Опции",
-                                tint = MaterialTheme.colorScheme.outline
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            if (index > 0) {
-                                DropdownMenuItem(
-                                    text = { Text("Переместить выше") },
-                                    leadingIcon = { Icon(Icons.Default.ArrowUpward, null) },
-                                    onClick = {
-                                        onMoveUp()
-                                        showMenu = false
-                                    }
-                                )
-                            }
-                            if (index < totalCount - 1) {
-                                DropdownMenuItem(
-                                    text = { Text("Переместить ниже") },
-                                    leadingIcon = { Icon(Icons.Default.ArrowDownward, null) },
-                                    onClick = {
-                                        onMoveDown()
-                                        showMenu = false
-                                    }
-                                )
-                            }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        if (index > 0) {
                             DropdownMenuItem(
-                                text = { Text("Заменить упражнение") },
-                                leadingIcon = { Icon(Icons.Default.SwapHoriz, null) },
+                                text = { Text(strings.moveUp) },
+                                leadingIcon = { Icon(Icons.Default.ArrowUpward, null) },
                                 onClick = {
-                                    onReplace()
-                                    showMenu = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Удалить из плана") },
-                                leadingIcon = { Icon(Icons.Default.Close, null) },
-                                onClick = {
-                                    onDelete()
+                                    onMoveUp()
                                     showMenu = false
                                 }
                             )
                         }
+                        if (index < totalCount - 1) {
+                            DropdownMenuItem(
+                                text = { Text(strings.moveDown) },
+                                leadingIcon = { Icon(Icons.Default.ArrowDownward, null) },
+                                onClick = {
+                                    onMoveDown()
+                                    showMenu = false
+                                }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text(strings.replaceExercise) },
+                            leadingIcon = { Icon(Icons.Default.SwapHoriz, null) },
+                            onClick = {
+                                onReplace()
+                                showMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(strings.deleteFromPlan) },
+                            leadingIcon = { Icon(Icons.Default.Close, null) },
+                            onClick = {
+                                onDelete()
+                                showMenu = false
+                            }
+                        )
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun ExercisePickerModal(
-    allExercises: List<Exercise>,
-    onDismiss: () -> Unit,
-    onSelect: (Exercise) -> Unit
-) {
-    var searchQuery by remember { mutableStateOf("") }
-    val filtered = allExercises.filter { it.name.contains(searchQuery, ignoreCase = true) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Выбери упражнение") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(350.dp)
-            ) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Поиск упражнения...") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(filtered) { ex ->
-                        Card(
-                            onClick = { onSelect(ex) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 3.dp),
-                            colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
-                        ) {
-                            Text(
-                                text = ex.name,
-                                modifier = Modifier.padding(12.dp),
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
-        }
-    )
 }

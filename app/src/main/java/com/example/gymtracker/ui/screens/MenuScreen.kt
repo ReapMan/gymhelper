@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
@@ -76,6 +78,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.ui.GymViewModel
+import com.example.gymtracker.ui.i18n.AppLanguage
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.AppThemeColor
 import com.example.gymtracker.ui.theme.BackgroundDark
 import com.example.gymtracker.ui.theme.BorderDark
@@ -103,8 +107,8 @@ fun MenuScreen(
     viewModel: GymViewModel,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     var subScreen by remember { mutableStateOf(MenuSubScreen.ROOT) }
-    var autoStopRest by remember { mutableStateOf(true) }
 
     if (subScreen != MenuSubScreen.ROOT) {
         BackHandler {
@@ -122,7 +126,7 @@ fun MenuScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Меню",
+                    text = strings.menuTitle,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black
                 )
@@ -146,20 +150,20 @@ fun MenuScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.List,
                                 contentDescription = null,
-                                tint = PrimaryNeon,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(26.dp)
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
-                                Text("База упражнений", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Шторки упражнений, фишки, иконки и памятки", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(strings.exerciseDatabase, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(strings.exerciseDatabaseDesc, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
                     }
                 }
 
-                // КНОПКА «ЭКСПОРТ ДЛЯ ИИ (AI DATA EXPORT)»
+                // КНОПКА «ЭКСПОРТ ДЛЯ ИИ» (AI DATA EXPORT)
                 Card(
                     onClick = { subScreen = MenuSubScreen.AI_EXPORT },
                     modifier = Modifier.fillMaxWidth(),
@@ -177,13 +181,13 @@ fun MenuScreen(
                             Icon(
                                 Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = PrimaryNeon,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(26.dp)
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
-                                Text("Экспорт для ИИ (AI Export)", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Выгрузка для ChatGPT, Claude и Gemini (MD / JSON)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(strings.aiExportTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(strings.aiExportDesc, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
@@ -208,13 +212,13 @@ fun MenuScreen(
                             Icon(
                                 Icons.Default.CloudUpload,
                                 contentDescription = null,
-                                tint = PrimaryNeon,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(26.dp)
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
-                                Text("Резервное копирование", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Экспорт базы в JSON, импорт, автосохранение", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(strings.backupRestoreTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(strings.backupRestoreDesc, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
@@ -244,8 +248,8 @@ fun MenuScreen(
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
-                                Text("Настройки", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Цветовая схема, таймеры, поведение отдыха", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(strings.settingsTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(strings.settingsDesc, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
@@ -267,14 +271,14 @@ fun MenuScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Создатели: reapman & Antigravity",
+                            text = strings.creatorsLabel,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(3.dp))
                         Text(
-                            text = "Версия 1.0.1 (Stable)",
+                            text = strings.appVersionLabel,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -292,9 +296,9 @@ fun MenuScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { subScreen = MenuSubScreen.ROOT }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancelBtn)
                     }
-                    Text("База упражнений", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(strings.exerciseDatabase, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
                 ExercisesScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
             }
@@ -318,6 +322,8 @@ fun MenuScreen(
 
         MenuSubScreen.SETTINGS -> {
             val currentThemeColor by viewModel.themeColor.collectAsState()
+            val currentLanguage by viewModel.appLanguage.collectAsState()
+            val isWorkoutNotificationEnabled by viewModel.isWorkoutNotificationEnabled.collectAsState()
 
             Column(
                 modifier = modifier
@@ -328,13 +334,149 @@ fun MenuScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { subScreen = MenuSubScreen.ROOT }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancelBtn)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Настройки", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(strings.settingsTitle, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
 
-                // СЕКЦИЯ: ВЫБОР ЦВЕТОВОЙ СХЕМЫ
+                // КАРТОЧКА: ВЫБОР ЯЗЫКА ПРИЛОЖЕНИЯ
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(strings.languageSettingTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(
+                                    strings.languageSettingDesc,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AppLanguage.entries.forEach { lang ->
+                                val isSelected = currentLanguage == lang
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { viewModel.setAppLanguage(lang) },
+                                    color = if (isSelected) SurfaceVariantDark else SurfaceDark,
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = if (isSelected) {
+                                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                    } else {
+                                        BorderStroke(1.dp, BorderDark)
+                                    }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(lang.flag, fontSize = 20.sp)
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column {
+                                                Text(
+                                                    text = lang.nativeName,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    fontSize = 14.sp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                                if (lang.displayName != lang.nativeName) {
+                                                    Text(
+                                                        text = lang.displayName,
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // КАРТОЧКА: УВЕДОМЛЕНИЕ АКТИВНОЙ ТРЕНИРОВКИ В ШТОРКЕ
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(strings.notificationSettingTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    strings.notificationSettingDesc,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = isWorkoutNotificationEnabled,
+                            onCheckedChange = { viewModel.setWorkoutNotificationEnabled(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                    }
+                }
+
+                // КАРТОЧКА: ВЫБОР ЦВЕТОВОЙ СХЕМЫ
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -355,9 +497,9 @@ fun MenuScreen(
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
-                                Text("Цветовая схема", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(strings.colorSchemeTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Text(
-                                    "Акцентный цвет кнопок, иконок и элементов",
+                                    strings.colorSchemeDesc,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -411,7 +553,7 @@ fun MenuScreen(
                                         if (isSelected) {
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = "Выбрано",
+                                                contentDescription = null,
                                                 tint = themeOption.primary,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -422,150 +564,75 @@ fun MenuScreen(
                         }
                     }
                 }
-
-                // СЕКЦИЯ: ТАЙМЕРЫ И ПОВЕДЕНИЕ
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Авто-отключение отдыха", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                "Сбрасывать секундомер отдыха при переходе к следующему упражнению",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(
-                            checked = autoStopRest,
-                            onCheckedChange = { autoStopRest = it },
-                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
-                        )
-                    }
-                }
             }
         }
     }
 }
 
+// -------------------------------------------------------------------------------------------------
+// ПОДЭКРАН: ЭКСПОРТ ДЛЯ ИИ
+// -------------------------------------------------------------------------------------------------
 @Composable
 private fun AiExportView(
     viewModel: GymViewModel,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
-    val coroutineScope = rememberCoroutineScope()
+    val clipboard = LocalClipboardManager.current
+    val completedSessions by viewModel.completedSessions.collectAsState()
+    val allExercises by viewModel.exercises.collectAsState()
 
-    var isJsonMode by remember { mutableStateOf(false) }
-    var exportContent by remember { mutableStateOf("Загрузка данных...") }
+    var selectedFormat by remember { mutableStateOf("Markdown") }
+    var exportText by remember { mutableStateOf("") }
+    var isGenerating by remember { mutableStateOf(false) }
 
-    fun refreshContent(json: Boolean) {
-        coroutineScope.launch {
-            exportContent = if (json) {
-                viewModel.getAiExportJson()
-            } else {
-                viewModel.getAiExportMarkdown()
-            }
+    LaunchedEffect(selectedFormat, completedSessions, allExercises) {
+        isGenerating = true
+        exportText = if (selectedFormat == "Markdown") {
+            viewModel.exportHistoryMarkdown()
+        } else {
+            viewModel.exportHistoryJson()
         }
-    }
-
-    LaunchedEffect(isJsonMode) {
-        refreshContent(isJsonMode)
+        isGenerating = false
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // ШАПКА
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancelBtn)
             }
-            Spacer(modifier = Modifier.width(6.dp))
-            Column {
-                Text(
-                    text = "Экспорт для ИИ",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Выгрузка истории тренировок для LLM",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(strings.aiExportTitle, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // ПЕРЕКЛЮЧАТЕЛЬ ФОРМАТА (MARKDOWN / JSON)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        // Переключатель формата
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
-                selected = !isJsonMode,
-                onClick = { isJsonMode = false },
-                label = { Text("Markdown (.md) для чата") },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = PrimaryNeon.copy(alpha = 0.2f),
-                    selectedLabelColor = PrimaryNeon
-                )
+                selected = selectedFormat == "Markdown",
+                onClick = { selectedFormat = "Markdown" },
+                label = { Text("Markdown (для ChatGPT / Claude)") }
             )
             FilterChip(
-                selected = isJsonMode,
-                onClick = { isJsonMode = true },
-                label = { Text("JSON (.json) для агентов") },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = PrimaryNeon.copy(alpha = 0.2f),
-                    selectedLabelColor = PrimaryNeon
-                )
+                selected = selectedFormat == "JSON",
+                onClick = { selectedFormat = "JSON" },
+                label = { Text("JSON (сырые данные)") }
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // ИНФОРМАЦИОННАЯ ПЛАШКА
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceDark)
-        ) {
-            Text(
-                text = "⚡ Данные включают все завершенные тренировки, упражнения, фишки, веса, повторения, теги интенсивности и заметки. Скопируй текст и вставь в ChatGPT, Claude или Gemini для глубокого анализа прогресса.",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(12.dp),
-                lineHeight = 16.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // ОБЛАСТЬ ПРЕДПРОСМОТРА ТЕКСТА
+        // Превью данных
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfaceDark)
         ) {
             Box(
                 modifier = Modifier
@@ -573,49 +640,43 @@ private fun AiExportView(
                     .padding(12.dp)
             ) {
                 Text(
-                    text = exportContent,
+                    text = if (isGenerating) "Генерация выгрузки..." else exportText,
                     fontFamily = FontFamily.Monospace,
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    lineHeight = 15.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // КНОПКИ ДЕЙСТВИЙ (КОПИРОВАТЬ / ПОДЕЛИТЬСЯ)
+        // Кнопки действий: Копировать и Поделиться
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
                 onClick = {
-                    clipboardManager.setText(AnnotatedString(exportContent))
-                    Toast.makeText(context, "Скопировано в буфер обмена!", Toast.LENGTH_SHORT).show()
+                    clipboard.setText(AnnotatedString(exportText))
+                    Toast.makeText(context, "Выгрузка скопирована в буфер!", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryNeon,
-                    contentColor = BackgroundDark
-                )
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Скопировать", fontWeight = FontWeight.Bold)
+                Text("Скопировать")
             }
 
             OutlinedButton(
                 onClick = {
-                    val sendIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, exportContent)
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
+                        putExtra(Intent.EXTRA_SUBJECT, "GymHelper AI Data Export")
+                        putExtra(Intent.EXTRA_TEXT, exportText)
                     }
-                    val shareIntent = Intent.createChooser(sendIntent, "Поделиться журналом тренировок")
-                    context.startActivity(shareIntent)
+                    context.startActivity(Intent.createChooser(shareIntent, "Поделиться экспортом"))
                 },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)
@@ -628,53 +689,55 @@ private fun AiExportView(
     }
 }
 
+// -------------------------------------------------------------------------------------------------
+// ПОДЭКРАН: РЕЗЕРВНОЕ КОПИРОВАНИЕ
+// -------------------------------------------------------------------------------------------------
 @Composable
 private fun BackupRestoreView(
     viewModel: GymViewModel,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
 
-    var showRestoreConfirmDialog by remember { mutableStateOf(false) }
-    var pendingRestoreJson by remember { mutableStateOf<String?>(null) }
-    var isOperating by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
+    var showConfirmRestoreDialog by remember { mutableStateOf(false) }
+    var jsonToRestore by remember { mutableStateOf("") }
 
-    // Лаунчер для сохранения файла бэкапа
-    var currentBackupJson by remember { mutableStateOf<String?>(null) }
-    val saveFileLauncher = rememberLauncherForActivityResult(
+    // Launcher для сохранения JSON в файл через системный файловый менеджер
+    val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
-        if (uri != null && currentBackupJson != null) {
-            try {
-                context.contentResolver.openOutputStream(uri)?.use { output ->
-                    output.write(currentBackupJson!!.toByteArray(Charsets.UTF_8))
+        if (uri != null) {
+            scope.launch {
+                val ok = viewModel.exportBackupToUri(uri)
+                if (ok) {
+                    successMessage = "Резервная копия успешно экспортирована в файл!"
+                    showSuccessDialog = true
+                } else {
+                    Toast.makeText(context, "Ошибка записи бэкапа", Toast.LENGTH_LONG).show()
                 }
-                Toast.makeText(context, "Резервная копия успешно сохранена!", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Toast.makeText(context, "Ошибка сохранения: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // Лаунчер для выбора файла бэкапа
-    val pickFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+    // Launcher для чтения JSON из файла
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
             try {
-                val content = context.contentResolver.openInputStream(uri)?.use { input ->
-                    BufferedReader(InputStreamReader(input, Charsets.UTF_8)).readText()
-                }
-                if (!content.isNullOrBlank() && content.contains("\"GymHelper\"")) {
-                    pendingRestoreJson = content
-                    showRestoreConfirmDialog = true
-                } else {
-                    Toast.makeText(context, "Выбранный файл не является резервной копией GymHelper!", Toast.LENGTH_LONG).show()
-                }
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                val json = reader.readText()
+                reader.close()
+                jsonToRestore = json
+                showConfirmRestoreDialog = true
             } catch (e: Exception) {
-                Toast.makeText(context, "Ошибка чтения файла: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Ошибка чтения файла: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -686,208 +749,139 @@ private fun BackupRestoreView(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Шапка
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancelBtn)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Резервное копирование", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(strings.backupRestoreTitle, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
 
-        // КАРТОЧКА: СОЗДАНИЕ РЕЗЕРВНОЙ КОПИИ
+        // Карточка: Полный бэкап в JSON
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = SurfaceDark)
         ) {
-            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CloudUpload, contentDescription = null, tint = PrimaryNeon, modifier = Modifier.size(24.dp))
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Создать резервную копию", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Экспорт всей базы (Snapshot)", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
                 Text(
-                    text = "Экспорт всех данных (папки, программы, упражнения, фишки и вся история тренировок с подходами) в надежный JSON-файл.",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                isOperating = true
-                                val json = viewModel.createFullBackup()
-                                currentBackupJson = json
-                                val timeFormat = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault())
-                                saveFileLauncher.launch("gym_backup_${timeFormat.format(Date())}.json")
-                                isOperating = false
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp),
-                        enabled = !isOperating
-                    ) {
-                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("В файл")
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                isOperating = true
-                                val json = viewModel.createFullBackup()
-                                val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_SUBJECT, "GymHelper Backup")
-                                    putExtra(Intent.EXTRA_TEXT, json)
-                                }
-                                context.startActivity(Intent.createChooser(sendIntent, "Поделиться бэкапом"))
-                                isOperating = false
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp),
-                        enabled = !isOperating
-                    ) {
-                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Поделиться")
-                    }
-                }
-            }
-        }
-
-        // КАРТОЧКА: ВОССТАНОВЛЕНИЕ ИЗ ФАЙЛА
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceDark)
-        ) {
-            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CloudDownload, contentDescription = null, tint = SecondaryAccent, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text("Восстановление из файла", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-
-                Text(
-                    text = "Загрузите файл резервной копии .json, чтобы восстановить все программы и историю на этом или новом устройстве.",
+                    text = "Сохраняет тренировки, все подходы, программы, упражнения и пользовательские фишки в один JSON файл.",
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Button(
                     onClick = {
-                        pickFileLauncher.launch("application/json")
+                        val fileName = "gym_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
+                        exportLauncher.launch(fileName)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = SecondaryAccent),
-                    enabled = !isOperating
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Выбрать файл .json для восстановления", fontWeight = FontWeight.Bold)
+                    Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Сохранить бэкап в файл (JSON)")
                 }
             }
         }
 
-        // КАРТОЧКА: АВТОМАТИЧЕСКАЯ ЗАЩИТА (УРОВЕНЬ 1 И 3)
+        // Карточка: Восстановление из JSON
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = SurfaceDark)
         ) {
-            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Security, contentDescription = null, tint = PrimaryNeon, modifier = Modifier.size(22.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Система защиты данных", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    }
-                    Surface(
-                        color = PrimaryNeon.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(6.dp)
-                    ) {
-                        Text(
-                            text = "АКТИВНО",
-                            color = PrimaryNeon,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                        )
-                    }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.CloudUpload,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Восстановление из JSON", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
                 Text(
-                    text = "• Crash Recovery: если телефон выключится во время тренировки, таймер и прогресс не пропадут.\n" +
-                           "• Автобэкап: после каждого завершения тренировки автоматически сохраняется файл gym_backup_auto.json.\n" +
-                           "• Google Auto Backup: системное шифрованное резервное копирование в Google Drive.\n" +
-                           "• SQLite WAL-режим: повышенная надежность и защита базы данных от повреждений при сбоях.",
-                    fontSize = 12.sp,
-                    lineHeight = 18.sp,
+                    text = "Импортирует данные из сохраненного бэкапа. Существующие записи будут аккуратно дополнены без потери текущих.",
+                    fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                OutlinedButton(
+                    onClick = {
+                        importLauncher.launch(arrayOf("application/json", "text/*"))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Выбрать файл бэкапа для восстановления")
+                }
             }
         }
     }
 
-    // ДИАЛОГ ПОДТВЕРЖДЕНИЯ ВОССТАНОВЛЕНИЯ
-    if (showRestoreConfirmDialog && pendingRestoreJson != null) {
+    if (showConfirmRestoreDialog) {
         AlertDialog(
-            onDismissRequest = {
-                showRestoreConfirmDialog = false
-                pendingRestoreJson = null
-            },
-            title = {
-                Text("Восстановить данные?", fontWeight = FontWeight.Bold)
-            },
-            text = {
-                Text(
-                    "Внимание: все текущие тренировки, упражнения и программы будут заменены данными из выбранной резервной копии. Это действие необратимо.\n\nПродолжить восстановление?"
-                )
-            },
+            onDismissRequest = { showConfirmRestoreDialog = false },
+            title = { Text("Подтверждение восстановления", fontWeight = FontWeight.Bold) },
+            text = { Text("Вы собираетесь импортировать данные из выбранного файла бэкапа. Продолжить?") },
             confirmButton = {
                 Button(
                     onClick = {
-                        val json = pendingRestoreJson!!
-                        showRestoreConfirmDialog = false
-                        pendingRestoreJson = null
-                        coroutineScope.launch {
-                            isOperating = true
-                            val success = viewModel.restoreFromBackup(json)
-                            isOperating = false
-                            if (success) {
-                                Toast.makeText(context, "База данных успешно восстановлена!", Toast.LENGTH_LONG).show()
-                                onBack()
+                        scope.launch {
+                            val res = viewModel.restoreBackupFromJson(jsonToRestore)
+                            showConfirmRestoreDialog = false
+                            if (res.isSuccess) {
+                                successMessage = res.getOrNull() ?: "База данных успешно восстановлена!"
+                                showSuccessDialog = true
                             } else {
-                                Toast.makeText(context, "Ошибка при восстановлении базы данных", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Ошибка: ${res.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
                             }
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    }
                 ) {
-                    Text("Восстановить", fontWeight = FontWeight.Bold)
+                    Text("Восстановить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showRestoreConfirmDialog = false
-                    pendingRestoreJson = null
-                }) {
-                    Text("Отмена")
-                }
+                TextButton(onClick = { showConfirmRestoreDialog = false }) { Text("Отмена") }
+            }
+        )
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            icon = { Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryNeon, modifier = Modifier.size(36.dp)) },
+            title = { Text("Успешно!", fontWeight = FontWeight.Bold) },
+            text = { Text(successMessage) },
+            confirmButton = {
+                Button(onClick = { showSuccessDialog = false }) { Text("OK") }
             }
         )
     }

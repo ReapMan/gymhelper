@@ -9,9 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,7 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Toc
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
@@ -37,7 +40,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,8 +68,10 @@ import com.example.gymtracker.data.model.ExerciseHistoryDay
 import com.example.gymtracker.data.model.WorkoutSet
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.components.AddSetDialog
+import com.example.gymtracker.ui.components.EditSetDialog
 import com.example.gymtracker.ui.components.ExerciseIcons
 import com.example.gymtracker.ui.components.SetRow
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.BackgroundDark
 import com.example.gymtracker.ui.theme.PrimaryContainerDark
 import com.example.gymtracker.ui.theme.PrimaryNeon
@@ -85,6 +89,8 @@ fun ExerciseFocusView(
     exercise: Exercise,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+
     val exerciseVariations by viewModel.exerciseVariations.collectAsState()
     val selectedVariation by viewModel.selectedVariation.collectAsState()
     val lastSetHint by viewModel.lastSetHint.collectAsState()
@@ -101,6 +107,7 @@ fun ExerciseFocusView(
     var showEditNotesDialog by remember { mutableStateOf(false) }
     var showPyramidHistoryDialog by remember { mutableStateOf(false) }
     var setToDelete by remember { mutableStateOf<WorkoutSet?>(null) }
+    var setToEdit by remember { mutableStateOf<WorkoutSet?>(null) }
 
     fun formatSeconds(sec: Long): String {
         val m = sec / 60
@@ -115,9 +122,12 @@ fun ExerciseFocusView(
     Box(modifier = modifier.fillMaxSize().background(BackgroundDark)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
+            contentPadding = PaddingValues(
+                bottom = 120.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+                top = 8.dp
+            )
         ) {
-            // ВЕРХНЯЯ ПАНЕЛЬ: ТАЙМЕР ПО ЦЕНТРУ + КВАДРАТНАЯ КНОПКА ПЛАНА СПРАВА ВВЕРХУ
+            // ВЕРХНИЙ БАР: К СЦЕНАРИЮ + ТАЙМЕР
             item {
                 Row(
                     modifier = Modifier
@@ -126,54 +136,53 @@ fun ExerciseFocusView(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Кнопка назад к роадмапу
                     IconButton(
                         onClick = { viewModel.exitExerciseFocus() },
                         modifier = Modifier
                             .size(42.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(SurfaceVariantDark)
+                            .background(SurfaceDark)
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "К плану тренировки",
+                            contentDescription = strings.toRoadmap,
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
-                    // Таймер упражнения СТРОГО ПО ЦЕНТРУ СВЕРХУ
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = SurfaceVariantDark,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Упражнение: ${formatSeconds(currentExerciseSeconds)}",
-                            fontSize = 13.sp,
+                            text = exercise.name,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                            maxLines = 1
+                        )
+                        Text(
+                            text = formatSeconds(currentExerciseSeconds),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
 
-                    // Квадратная кнопка плана тренировки СПРАВА ВВЕРХУ
                     IconButton(
                         onClick = { viewModel.exitExerciseFocus() },
                         modifier = Modifier
                             .size(42.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(SurfaceVariantDark)
+                            .background(SurfaceDark)
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.Toc,
-                            contentDescription = "План тренировки",
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = strings.exitFocus,
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
 
-            // КАРТОЧКА УПРАЖНЕНИЯ
+            // КАРТОЧКА УПРАЖНЕНИЯ: ИКОНКА, НАЗВАНИЕ, ФИШКИ И ПОДСКАЗКА
             item {
                 Card(
                     modifier = Modifier
@@ -182,11 +191,15 @@ fun ExerciseFocusView(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = SurfaceDark)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -194,14 +207,14 @@ fun ExerciseFocusView(
                             ) {
                                 Surface(
                                     shape = CircleShape,
-                                    color = PrimaryNeon.copy(alpha = 0.2f),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                     modifier = Modifier.size(36.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             imageVector = ExerciseIcons.getIcon(exercise.icon),
                                             contentDescription = null,
-                                            tint = PrimaryNeon,
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -217,25 +230,25 @@ fun ExerciseFocusView(
                             IconButton(onClick = { showEditNotesDialog = true }) {
                                 Icon(
                                     Icons.Default.Edit,
-                                    contentDescription = "Заметка к тренажеру",
+                                    contentDescription = strings.editNotes,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
 
-                        // Заметка к тренажеру
+                        // Заметка к упражнению
                         if (exercise.notes.isNotBlank()) {
                             Text(
-                                text = "📌 ${exercise.notes}",
+                                text = "📝 ${exercise.notes}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
-                        // ФИШКА (бывшая Разновидность)
+                        // Фишки (вариации хвата/техники)
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Фишка:",
+                            text = strings.variationsTitle,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = SecondaryAccent
@@ -246,7 +259,7 @@ fun ExerciseFocusView(
                                 FilterChip(
                                     selected = selectedVariation == null,
                                     onClick = { viewModel.selectVariation(null) },
-                                    label = { Text("Стандарт") },
+                                    label = { Text(strings.standardVariation) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = SecondaryAccent.copy(alpha = 0.3f)
                                     )
@@ -267,12 +280,12 @@ fun ExerciseFocusView(
                                     onClick = { showAddVariationDialog = true },
                                     modifier = Modifier.size(32.dp)
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Добавить фишку")
+                                    Icon(Icons.Default.Add, contentDescription = strings.addVariationBtn)
                                 }
                             }
                         }
 
-                        // ПОДСКАЗКА ПРОШЛОГО РЕЗУЛЬТАТА + КНОПКА «ВСЯ ИСТОРИЯ ПОДХОДОВ»
+                        // Подсказка прошлого подхода
                         Spacer(modifier = Modifier.height(10.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -291,16 +304,16 @@ fun ExerciseFocusView(
                                         Icon(
                                             Icons.Default.Info,
                                             contentDescription = null,
-                                            tint = PrimaryNeon,
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         val varSuffix = selectedVariation?.let { " (${it.name})" } ?: ""
                                         Text(
-                                            text = "Прошлый раз$varSuffix: ${if (lastSetHint!!.weightKg % 1 == 0f) lastSetHint!!.weightKg.toInt() else lastSetHint!!.weightKg}×${lastSetHint!!.reps}",
+                                            text = "${strings.prevWorkoutHistory}$varSuffix ${if (lastSetHint!!.weightKg % 1 == 0f) lastSetHint!!.weightKg.toInt() else lastSetHint!!.weightKg} ${strings.kgUnit} × ${lastSetHint!!.reps}",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = PrimaryNeon
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
@@ -308,7 +321,7 @@ fun ExerciseFocusView(
                                 Spacer(modifier = Modifier.width(1.dp))
                             }
 
-                            // Кнопка для просмотра полной лесенки/елочки прошлых дней
+                            // Кнопка истории прошлых тренировок
                             OutlinedButton(
                                 onClick = { showPyramidHistoryDialog = true },
                                 shape = RoundedCornerShape(8.dp),
@@ -317,14 +330,14 @@ fun ExerciseFocusView(
                             ) {
                                 Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("История фишки", fontSize = 11.sp)
+                                Text(strings.prevWorkoutHistory, fontSize = 11.sp)
                             }
                         }
                     }
                 }
             }
 
-            // БЛОК СОСТОЯНИЯ: ПОДХОД / ОТДЫХ
+            // БЛОК ТАЙМЕРА: СЕТ / ОТДЫХ
             item {
                 Card(
                     modifier = Modifier
@@ -347,21 +360,21 @@ fun ExerciseFocusView(
                     ) {
                         if (isPerformingSet) {
                             Text(
-                                text = "🔥 ИДЁТ ПОДХОД #${exerciseSets.size + 1}",
+                                text = "🔥 ${strings.setLabel} #${exerciseSets.size + 1}",
                                 fontWeight = FontWeight.Black,
-                                color = PrimaryNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 18.sp,
                                 letterSpacing = 1.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Как закончишь — жми кнопку снизу",
+                                text = strings.startSet,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
                             Text(
-                                text = "ОТДЫХ",
+                                text = strings.restTimer,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = TagColor,
                                 fontWeight = FontWeight.Bold
@@ -373,21 +386,16 @@ fun ExerciseFocusView(
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Text(
-                                text = "Восстанавливай дыхание",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
                 }
             }
 
-            // СПИСОК ВЫПОЛНЕННЫХ ПОДХОДОВ ЗА СЕГОДНЯ
+            // СПИСОК ВЫПОЛНЕННЫХ ПОДХОДОВ
             if (exerciseSets.isNotEmpty()) {
                 item {
                     Text(
-                        text = "Подходы за сегодня (${exerciseSets.size}):",
+                        text = "${strings.recordedSets} (${exerciseSets.size}):",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
@@ -400,6 +408,7 @@ fun ExerciseFocusView(
                         set = set,
                         variationName = varName,
                         onDelete = { setToDelete = set },
+                        onEdit = { setToEdit = set },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp)
                     )
                 }
@@ -412,7 +421,7 @@ fun ExerciseFocusView(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Подходов пока нет.\nНажми «Начать подход» снизу.",
+                            text = "${strings.noSetsYet}\n${strings.noSetsYetDesc}",
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             color = MaterialTheme.colorScheme.outline
                         )
@@ -421,11 +430,13 @@ fun ExerciseFocusView(
             }
         }
 
-        // ПЛАВАЮЩИЕ КНОПКИ УПРАВЛЕНИЯ ВНИЗУ
+        // ПЛАВАЮЩИЙ НИЖНИЙ БАР УПРАВЛЕНИЯ СЕТОМ
+        // ВАЖНО: navigationBarsPadding() поднимает бар над системными кнопками Asus ROG
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .navigationBarsPadding(),
             color = SurfaceDark,
             shadowElevation = 12.dp
         ) {
@@ -441,15 +452,15 @@ fun ExerciseFocusView(
                             .fillMaxWidth()
                             .height(54.dp),
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryNeon)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Default.Stop, contentDescription = null, tint = Color.Black)
+                        Icon(Icons.Default.Stop, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Закончить подход и записать",
+                            strings.finishSet,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Black,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 } else {
@@ -463,15 +474,15 @@ fun ExerciseFocusView(
                                 .weight(1f)
                                 .height(54.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryNeon)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black)
+                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                "Начать подход",
+                                strings.startSet,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
@@ -482,14 +493,14 @@ fun ExerciseFocusView(
                         ) {
                             Icon(Icons.Default.SkipNext, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("След. упражнение", fontSize = 13.sp)
+                            Text(strings.toRoadmap, fontSize = 13.sp)
                         }
                     }
                 }
             }
         }
 
-        // ДИАЛОГИ
+        // ДИАЛОГ ДОБАВЛЕНИЯ СЕТА
         if (showAddSetDialog) {
             val lastSet = exerciseSets.lastOrNull()
             val initW = lastSet?.weightKg ?: lastSetHint?.weightKg ?: 60f
@@ -506,17 +517,30 @@ fun ExerciseFocusView(
             )
         }
 
+        // ДИАЛОГ РЕДАКТИРОВАНИЯ СЕТА (ПО ТАПУ НА ЛЮБОЙ СЕТ)
+        if (setToEdit != null) {
+            EditSetDialog(
+                set = setToEdit!!,
+                variations = exerciseVariations,
+                onDismiss = { setToEdit = null },
+                onConfirm = { updated ->
+                    viewModel.updateSet(updated)
+                    setToEdit = null
+                }
+            )
+        }
+
         // ДИАЛОГ ДОБАВЛЕНИЯ ФИШКИ
         if (showAddVariationDialog) {
             var varName by remember { mutableStateOf("") }
             AlertDialog(
                 onDismissRequest = { showAddVariationDialog = false },
-                title = { Text("Новая фишка") },
+                title = { Text(strings.addVariationTitle) },
                 text = {
                     OutlinedTextField(
                         value = varName,
                         onValueChange = { varName = it },
-                        label = { Text("Название (например: V-образная, Узкий хват)") },
+                        label = { Text(strings.variationNamePlaceholder) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -530,26 +554,27 @@ fun ExerciseFocusView(
                             }
                         }
                     ) {
-                        Text("Добавить")
+                        Text(strings.saveBtn)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showAddVariationDialog = false }) { Text("Отмена") }
+                    TextButton(onClick = { showAddVariationDialog = false }) { Text(strings.cancelBtn) }
                 }
             )
         }
 
+        // ДИАЛОГ РЕДАКТИРОВАНИЯ ЗАМЕТКИ
         if (showEditNotesDialog) {
             var nText by remember { mutableStateOf(exercise.notes) }
             AlertDialog(
                 onDismissRequest = { showEditNotesDialog = false },
-                title = { Text("Памятка по тренажеру") },
+                title = { Text(strings.editNotes) },
                 text = {
                     OutlinedTextField(
                         value = nText,
                         onValueChange = { nText = it },
-                        label = { Text("Настройки высоты, сиденья, упора...") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 4
                     )
                 },
                 confirmButton = {
@@ -559,76 +584,48 @@ fun ExerciseFocusView(
                             showEditNotesDialog = false
                         }
                     ) {
-                        Text("Сохранить")
+                        Text(strings.saveBtn)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showEditNotesDialog = false }) { Text("Отмена") }
+                    TextButton(onClick = { showEditNotesDialog = false }) { Text(strings.cancelBtn) }
                 }
             )
         }
 
-        // МОДАЛКА: ПОЛНАЯ ИСТОРИЯ ПОДХОДОВ ДЛЯ ЭТОЙ ФИШКИ (ЕЛОЧКА/ПИРАМИДА)
+        // ДИАЛОГ ИСТОРИИ ПРОШЛЫХ ТРЕНИРОВОК
         if (showPyramidHistoryDialog) {
             var historyDays by remember { mutableStateOf<List<ExerciseHistoryDay>>(emptyList()) }
             LaunchedEffect(exercise.id, selectedVariation?.id) {
                 historyDays = viewModel.loadExerciseHistory(exercise.id, selectedVariation?.id)
             }
 
-            val dateFormat = remember { SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()) }
-            val curVarName = selectedVariation?.name ?: "Стандарт"
-
             AlertDialog(
                 onDismissRequest = { showPyramidHistoryDialog = false },
-                title = {
-                    Column {
-                        Text(exercise.name, fontWeight = FontWeight.Black)
-                        Text(
-                            "История фишки: $curVarName",
-                            fontSize = 13.sp,
-                            color = SecondaryAccent,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
+                title = { Text(strings.prevWorkoutHistory) },
                 text = {
                     if (historyDays.isEmpty()) {
-                        Box(
+                        Text(strings.noHistoryYet)
+                    } else {
+                        LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(120.dp),
-                            contentAlignment = Alignment.Center
+                                .height(300.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                "Ранее подходов с этой фишкой не было",
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        }
-                    } else {
-                        LazyColumn(modifier = Modifier.height(350.dp)) {
                             items(historyDays) { day ->
+                                val dateStr = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(day.timestamp))
                                 Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
+                                    modifier = Modifier.fillMaxWidth(),
                                     colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp)) {
-                                        Text(
-                                            text = "${dateFormat.format(Date(day.timestamp))} • ${day.sessionTitle}",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
+                                        Text(dateStr, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        // Выводим все подходы дня (лесенка / елочка!)
                                         day.sets.forEach { s ->
                                             Text(
-                                                text = "Сет ${s.setNumber}:  ${if (s.weightKg % 1 == 0f) s.weightKg.toInt() else s.weightKg} кг × ${s.reps} повт." +
-                                                        if (s.intensityStatus.isNotBlank()) " [${s.intensityStatus}]" else "" +
-                                                        if (s.tags.isNotBlank()) " (${s.tags})" else "",
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Medium
+                                                text = "${strings.setLabel} ${s.setNumber}: ${if (s.weightKg % 1 == 0f) s.weightKg.toInt() else s.weightKg} ${strings.kgUnit} × ${s.reps} ${strings.repsUnit}",
+                                                fontSize = 13.sp
                                             )
                                         }
                                     }
@@ -639,21 +636,20 @@ fun ExerciseFocusView(
                 },
                 confirmButton = {
                     TextButton(onClick = { showPyramidHistoryDialog = false }) {
-                        Text("Закрыть")
+                        Text("OK")
                     }
                 }
             )
         }
 
-        // ДИАЛОГ ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ ПОДХОДА
-        val targetSet = setToDelete
-        if (targetSet != null) {
+        // ДИАЛОГ УДАЛЕНИЯ СЕТА
+        if (setToDelete != null) {
+            val targetSet = setToDelete!!
             AlertDialog(
                 onDismissRequest = { setToDelete = null },
-                title = { Text("Удалить подход?") },
+                title = { Text(strings.deleteSetConfirmTitle) },
                 text = {
-                    val w = if (targetSet.weightKg % 1 == 0f) targetSet.weightKg.toInt() else targetSet.weightKg
-                    Text("Удалить подход #${targetSet.setNumber} ($w кг × ${targetSet.reps} повт.)?")
+                    Text("${strings.deleteSetConfirmMsg} (${strings.setLabel} #${targetSet.setNumber}, ${targetSet.weightKg} ${strings.kgUnit} × ${targetSet.reps})")
                 },
                 confirmButton = {
                     Button(
@@ -663,11 +659,11 @@ fun ExerciseFocusView(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Удалить")
+                        Text(strings.deleteBtn)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { setToDelete = null }) { Text("Отмена") }
+                    TextButton(onClick = { setToDelete = null }) { Text(strings.cancelBtn) }
                 }
             )
         }

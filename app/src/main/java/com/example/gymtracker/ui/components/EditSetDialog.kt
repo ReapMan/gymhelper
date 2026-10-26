@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.model.ExerciseVariation
 import com.example.gymtracker.data.model.WorkoutSet
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.EasyTagColor
 import com.example.gymtracker.ui.theme.FailureTagColor
 import com.example.gymtracker.ui.theme.TagColor
@@ -59,6 +61,8 @@ fun EditSetDialog(
     onDismiss: () -> Unit,
     onConfirm: (updatedSet: WorkoutSet) -> Unit
 ) {
+    val strings = LocalAppStrings.current
+
     var weight by remember { mutableFloatStateOf(set.weightKg) }
     var reps by remember { mutableIntStateOf(set.reps) }
     var selectedVariationId by remember { mutableStateOf(set.variationId) }
@@ -69,7 +73,7 @@ fun EditSetDialog(
     var showDirectRepsInput by remember { mutableStateOf(false) }
     var directRepsText by remember { mutableStateOf("") }
 
-    val defaultTags = listOf("Дропсет", "Другой тренажер", "С читингом", "В бинтах", "Разминка")
+    val defaultTags = listOf(strings.tagDrop, strings.tagFailure, strings.tagWarmup, strings.tagEasy)
     val selectedTags = remember {
         mutableStateListOf<String>().apply {
             if (set.tags.isNotBlank()) {
@@ -78,7 +82,12 @@ fun EditSetDialog(
         }
     }
 
-    val intensityOptions = listOf("Легко", "Нормально", "Тяжело", "Отказ")
+    val intensityOptions = listOf(
+        strings.setTypeNormal,
+        strings.setTypeWarmup,
+        strings.setTypeDrop,
+        strings.setTypeFailure
+    )
     var selectedIntensity by remember { mutableStateOf(set.intensityStatus) }
     var notes by remember { mutableStateOf(set.notes) }
 
@@ -86,7 +95,7 @@ fun EditSetDialog(
     if (showDirectWeightInput) {
         AlertDialog(
             onDismissRequest = { showDirectWeightInput = false },
-            title = { Text("Введи точный вес (кг)") },
+            title = { Text(strings.weightLabel) },
             text = {
                 OutlinedTextField(
                     value = directWeightText,
@@ -105,7 +114,7 @@ fun EditSetDialog(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDirectWeightInput = false }) { Text("Отмена") }
+                TextButton(onClick = { showDirectWeightInput = false }) { Text(strings.cancelBtn) }
             }
         )
     }
@@ -114,7 +123,7 @@ fun EditSetDialog(
     if (showDirectRepsInput) {
         AlertDialog(
             onDismissRequest = { showDirectRepsInput = false },
-            title = { Text("Введи число повторений") },
+            title = { Text(strings.repsLabel) },
             text = {
                 OutlinedTextField(
                     value = directRepsText,
@@ -133,17 +142,19 @@ fun EditSetDialog(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDirectRepsInput = false }) { Text("Отмена") }
+                TextButton(onClick = { showDirectRepsInput = false }) { Text(strings.cancelBtn) }
             }
         )
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.navigationBarsPadding().imePadding(),
+        modifier = Modifier
+            .navigationBarsPadding()
+            .imePadding(),
         title = {
             Text(
-                "Сет ${set.setNumber} (редактирование)",
+                "${strings.editSetTitle}: ${strings.setLabel} ${set.setNumber}",
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -164,14 +175,9 @@ fun EditSetDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Вес снаряда",
+                            text = strings.weightLabel,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "нажми на число для ввода",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.outline
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -195,9 +201,9 @@ fun EditSetDialog(
                                 .padding(horizontal = 16.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "${if (weight % 1 == 0f) weight.toInt() else weight} кг",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Black
+                                text = "${if (weight % 1 == 0f) weight.toInt() else weight} ${strings.kgUnit}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
@@ -205,26 +211,42 @@ fun EditSetDialog(
                             Icon(Icons.Default.Add, "+1")
                         }
                     }
+
+                    // Быстрые шаги веса
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        listOf(-5f, -2.5f, 2.5f, 5f).forEach { step ->
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                modifier = Modifier
+                                    .clickable {
+                                        val newW = weight + step
+                                        if (newW >= 0f) weight = newW
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = if (step > 0) "+$step" else "$step",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // ПОВТОРЕНИЯ
                 Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Повторения",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "нажми на число для ввода",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
+                    Text(
+                        text = strings.repsLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -243,12 +265,12 @@ fun EditSetDialog(
                                     directRepsText = "$reps"
                                     showDirectRepsInput = true
                                 }
-                                .padding(horizontal = 24.dp, vertical = 6.dp)
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "$reps",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Black
+                                text = "$reps ${strings.repsUnit}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
@@ -258,79 +280,73 @@ fun EditSetDialog(
                     }
                 }
 
-                // ФИШКА УПРАЖНЕНИЯ
+                // ВАРИАЦИИ / ХВАТ
                 if (variations.isNotEmpty()) {
                     Column {
                         Text(
-                            text = "Фишка упражнения:",
+                            text = strings.variationsTitle,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             FilterChip(
                                 selected = selectedVariationId == null,
                                 onClick = { selectedVariationId = null },
-                                label = { Text("Стандарт") }
+                                label = { Text(strings.standardVariation) },
+                                shape = RoundedCornerShape(8.dp)
                             )
                             variations.forEach { v ->
                                 FilterChip(
                                     selected = selectedVariationId == v.id,
                                     onClick = { selectedVariationId = v.id },
-                                    label = { Text(v.name) }
+                                    label = { Text(v.name) },
+                                    shape = RoundedCornerShape(8.dp)
                                 )
                             }
                         }
                     }
                 }
 
-                // ИНТЕНСИВНОСТЬ
+                // ТИП ПОДХОДА / ИНТЕНСИВНОСТЬ
                 Column {
                     Text(
-                        text = "Ощущение / Интенсивность:",
+                        text = strings.setLabel,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         intensityOptions.forEach { opt ->
-                            val isSelected = selectedIntensity == opt
                             FilterChip(
-                                selected = isSelected,
+                                selected = selectedIntensity.equals(opt, ignoreCase = true),
                                 onClick = {
-                                    selectedIntensity = if (isSelected) "" else opt
+                                    selectedIntensity = if (selectedIntensity == opt) "" else opt
                                 },
                                 label = { Text(opt) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = when (opt) {
-                                        "Отказ" -> FailureTagColor.copy(alpha = 0.3f)
-                                        "Тяжело" -> TagColor.copy(alpha = 0.3f)
-                                        "Легко" -> EasyTagColor.copy(alpha = 0.3f)
-                                        else -> MaterialTheme.colorScheme.primaryContainer
-                                    }
-                                )
+                                shape = RoundedCornerShape(8.dp)
                             )
                         }
                     }
                 }
 
-                // ТЕГИ СЕТА
+                // ТЕГИ
                 Column {
                     Text(
-                        text = "Теги:",
+                        text = "Теги",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         defaultTags.forEach { tag ->
                             val isSelected = selectedTags.contains(tag)
@@ -339,44 +355,50 @@ fun EditSetDialog(
                                 onClick = {
                                     if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
                                 },
-                                label = { Text(tag) }
+                                label = { Text(tag) },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = when {
+                                        tag.contains("Отказ") || tag.contains("Відмова") || tag.contains("ჩავარდნა") -> FailureTagColor.copy(alpha = 0.3f)
+                                        tag.contains("Легко") || tag.contains("მარტივი") -> EasyTagColor.copy(alpha = 0.3f)
+                                        else -> TagColor.copy(alpha = 0.3f)
+                                    }
+                                )
                             )
                         }
                     }
                 }
 
-                // ЗАМЕТКА К СЕТУ
+                // ЗАМЕТКА
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Заметка к подходу (опционально)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text(strings.workoutNotesPlaceholder) },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 2
                 )
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    onConfirm(
-                        set.copy(
-                            weightKg = weight,
-                            reps = reps,
-                            variationId = selectedVariationId,
-                            intensityStatus = selectedIntensity,
-                            tags = selectedTags.joinToString(", "),
-                            notes = notes
-                        )
+                    val updated = set.copy(
+                        weightKg = weight,
+                        reps = reps,
+                        variationId = selectedVariationId,
+                        intensityStatus = selectedIntensity,
+                        tags = selectedTags.joinToString(", "),
+                        notes = notes.trim()
                     )
-                    onDismiss()
+                    onConfirm(updated)
                 }
             ) {
-                Text("Сохранить изменения", fontWeight = FontWeight.Bold)
+                Text(strings.saveBtn)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(strings.cancelBtn)
             }
         }
     )

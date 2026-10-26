@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,9 +23,6 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -49,22 +47,22 @@ import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.model.WorkoutSession
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.ScreenTab
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.BackgroundDark
-import com.example.gymtracker.ui.theme.BorderDark
-import com.example.gymtracker.ui.theme.PrimaryNeon
 import com.example.gymtracker.ui.theme.SurfaceDark
-import com.example.gymtracker.ui.theme.SurfaceVariantDark
 
 @Composable
 fun MainAppScreen(
     viewModel: GymViewModel
 ) {
+    val strings = LocalAppStrings.current
+
     val currentTab by viewModel.currentTab.collectAsState()
     val activeSession by viewModel.activeSession.collectAsState()
     val isWorkoutMinimized by viewModel.isWorkoutMinimized.collectAsState()
     val workoutSeconds by viewModel.workoutSeconds.collectAsState()
 
-    // Если тренировки нет, либо она свернута в фон — нижняя панель навигации доступна!
+    // Если тренировки нет, либо она свернута в фон — нижняя панель навигации доступна
     val showBottomBar = activeSession == null || isWorkoutMinimized
 
     Scaffold(
@@ -95,44 +93,64 @@ fun MainAppScreen(
                                     viewModel.switchTab(ScreenTab.WORKOUT)
                                 }
                             },
-                            icon = { Icon(Icons.Default.FitnessCenter, contentDescription = "Зал") },
-                            label = { Text("Тренировка", fontWeight = if (currentTab == ScreenTab.WORKOUT) FontWeight.Bold else FontWeight.Normal) },
+                            icon = { Icon(Icons.Default.FitnessCenter, contentDescription = strings.navWorkout) },
+                            label = {
+                                Text(
+                                    strings.navWorkout,
+                                    fontWeight = if (currentTab == ScreenTab.WORKOUT) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                indicatorColor = PrimaryNeon
+                                indicatorColor = MaterialTheme.colorScheme.primary
                             )
                         )
 
                         NavigationBarItem(
                             selected = currentTab == ScreenTab.TEMPLATES,
                             onClick = { viewModel.switchTab(ScreenTab.TEMPLATES) },
-                            icon = { Icon(Icons.Default.Bookmark, contentDescription = "Программы") },
-                            label = { Text("Программы", fontWeight = if (currentTab == ScreenTab.TEMPLATES) FontWeight.Bold else FontWeight.Normal) },
+                            icon = { Icon(Icons.Default.Bookmark, contentDescription = strings.navPrograms) },
+                            label = {
+                                Text(
+                                    strings.navPrograms,
+                                    fontWeight = if (currentTab == ScreenTab.TEMPLATES) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                indicatorColor = PrimaryNeon
+                                indicatorColor = MaterialTheme.colorScheme.primary
                             )
                         )
 
                         NavigationBarItem(
                             selected = currentTab == ScreenTab.HISTORY,
                             onClick = { viewModel.switchTab(ScreenTab.HISTORY) },
-                            icon = { Icon(Icons.Default.History, contentDescription = "История") },
-                            label = { Text("История", fontWeight = if (currentTab == ScreenTab.HISTORY) FontWeight.Bold else FontWeight.Normal) },
+                            icon = { Icon(Icons.Default.History, contentDescription = strings.navHistory) },
+                            label = {
+                                Text(
+                                    strings.navHistory,
+                                    fontWeight = if (currentTab == ScreenTab.HISTORY) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                indicatorColor = PrimaryNeon
+                                indicatorColor = MaterialTheme.colorScheme.primary
                             )
                         )
 
                         NavigationBarItem(
                             selected = currentTab == ScreenTab.MENU,
                             onClick = { viewModel.switchTab(ScreenTab.MENU) },
-                            icon = { Icon(Icons.Default.Menu, contentDescription = "Меню") },
-                            label = { Text("Меню", fontWeight = if (currentTab == ScreenTab.MENU) FontWeight.Bold else FontWeight.Normal) },
+                            icon = { Icon(Icons.Default.Menu, contentDescription = strings.navMenu) },
+                            label = {
+                                Text(
+                                    strings.navMenu,
+                                    fontWeight = if (currentTab == ScreenTab.MENU) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                indicatorColor = PrimaryNeon
+                                indicatorColor = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -157,6 +175,8 @@ fun WorkoutRunningBanner(
     onReturn: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+
     fun formatSeconds(sec: Long): String {
         val h = sec / 3600
         val m = (sec % 3600) / 60
@@ -209,7 +229,7 @@ fun WorkoutRunningBanner(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = session.title.ifBlank { "Текущая тренировка" },
+                        text = session.title.ifBlank { strings.defaultWorkoutTitle },
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -218,7 +238,7 @@ fun WorkoutRunningBanner(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Идет тренировка",
+                        text = strings.workoutRunning,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary,
@@ -250,7 +270,7 @@ fun WorkoutRunningBanner(
                     Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "К тренировке",
+                        contentDescription = strings.returnToWorkout,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )

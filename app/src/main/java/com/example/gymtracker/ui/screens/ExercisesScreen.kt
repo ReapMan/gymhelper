@@ -68,6 +68,8 @@ import com.example.gymtracker.data.model.ExerciseVariation
 import com.example.gymtracker.data.model.MuscleGroup
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.components.ExerciseIcons
+import com.example.gymtracker.ui.i18n.LocalAppStrings
+import com.example.gymtracker.ui.i18n.localizeMuscleGroupName
 import com.example.gymtracker.ui.theme.BorderDark
 import com.example.gymtracker.ui.theme.PrimaryNeon
 import com.example.gymtracker.ui.theme.SecondaryAccent
@@ -80,6 +82,7 @@ fun ExercisesScreen(
     viewModel: GymViewModel,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val allExercises by viewModel.exercises.collectAsState()
     val muscleGroups by viewModel.muscleGroups.collectAsState()
     val allVariations by viewModel.allVariations.collectAsState()
@@ -145,7 +148,7 @@ fun ExercisesScreen(
                     FilterChip(
                         selected = selectedGroupId == null,
                         onClick = { selectedGroupId = null },
-                        label = { Text("Все (${allExercises.size})") },
+                        label = { Text("${strings.allMuscleGroups} (${allExercises.size})") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = PrimaryNeon.copy(alpha = 0.2f),
                             selectedLabelColor = PrimaryNeon
@@ -157,7 +160,7 @@ fun ExercisesScreen(
                     FilterChip(
                         selected = selectedGroupId == group.id,
                         onClick = { selectedGroupId = group.id },
-                        label = { Text("${group.name} ($count)") },
+                        label = { Text("${localizeMuscleGroupName(group.name, strings)} ($count)") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = PrimaryNeon.copy(alpha = 0.2f),
                             selectedLabelColor = PrimaryNeon

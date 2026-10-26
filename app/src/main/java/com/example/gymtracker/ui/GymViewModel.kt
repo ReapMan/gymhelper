@@ -17,6 +17,9 @@ import com.example.gymtracker.data.model.WorkoutSet
 import com.example.gymtracker.data.model.WorkoutTemplate
 import com.example.gymtracker.data.model.WorkoutTemplateItem
 import com.example.gymtracker.ui.theme.AppThemeColor
+import com.example.gymtracker.ui.i18n.AppLanguage
+import com.example.gymtracker.service.WorkoutNotificationService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class ScreenTab {
     WORKOUT,
@@ -57,6 +61,68 @@ class GymViewModel(
     fun setThemeColor(color: AppThemeColor) {
         _themeColor.value = color
         themePrefs?.edit()?.putString("theme_color_id", color.id)?.apply()
+    }
+
+    // Язык приложения
+    private val appPrefs = context?.getSharedPreferences("gym_app_prefs", Context.MODE_PRIVATE)
+    private val _appLanguage = MutableStateFlow(
+        AppLanguage.fromCode(appPrefs?.getString("app_language_code", AppLanguage.RUSSIAN.code) ?: "ru")
+    )
+    val appLanguage: StateFlow<AppLanguage> = _appLanguage.asStateFlow()
+
+    fun setAppLanguage(language: AppLanguage) {
+        _appLanguage.value = language
+        appPrefs?.edit()?.putString("app_language_code", language.code)?.apply()
+    }
+
+    // Уведомление активной тренировки в шторке
+    private val _isWorkoutNotificationEnabled = MutableStateFlow(
+        appPrefs?.getBoolean("workout_notification_enabled", true) ?: true
+    )
+    val isWorkoutNotificationEnabled: StateFlow<Boolean> = _isWorkoutNotificationEnabled.asStateFlow()
+
+    fun setWorkoutNotificationEnabled(enabled: Boolean) {
+        _isWorkoutNotificationEnabled.value = enabled
+        appPrefs?.edit()?.putBoolean("workout_notification_enabled", enabled)?.apply()
+        if (enabled && activeSession.value != null) {
+            startWorkoutNotification()
+        } else {
+            stopWorkoutNotification()
+        }
+    }
+
+    fun startWorkoutNotification() {
+        val ctx = context ?: return
+        if (!_isWorkoutNotificationEnabled.value) return
+        val session = activeSession.value ?: return
+        WorkoutNotificationService.start(ctx, session.title, session.startTime)
+    }
+
+    fun updateWorkoutNotification() {
+        val ctx = context ?: return
+        if (!_isWorkoutNotificationEnabled.value) return
+        val session = activeSession.value ?: return
+        val isResting = !_isPerformingSet.value
+        WorkoutNotificationService.updateRest(ctx, isResting, _restSeconds.value, session.title)
+    }
+
+    fun stopWorkoutNotification() {
+        val ctx = context ?: return
+        WorkoutNotificationService.stop(ctx)
+    }
+
+    fun renameActiveSession(newTitle: String) {
+        val trimmed = newTitle.trim()
+        if (trimmed.isBlank()) return
+        viewModelScope.launch {
+            activeSession.value?.let { session ->
+                gymDao.updateSession(session.copy(title = trimmed))
+                if (_isWorkoutNotificationEnabled.value) {
+                    val ctx = context ?: return@launch
+                    WorkoutNotificationService.updateRest(ctx, !_isPerformingSet.value, _restSeconds.value, trimmed)
+                }
+            }
+        }
     }
 
     // Свернута ли тренировка в фон (позволяет пользоваться вкладками навигации)
@@ -160,6 +226,7 @@ class GymViewModel(
                     if (tickerJob == null || tickerJob?.isActive != true) {
                         _isWorkoutMinimized.value = true
                         startTickers()
+                        startWorkoutNotification()
                     }
                     gymDao.getSetsForSession(session.id).collect { sets ->
                         _activeSessionSets.value = sets
@@ -175,6 +242,7 @@ class GymViewModel(
                     _workoutPlan.value = emptyList()
                     _isWorkoutMinimized.value = false
                     stopTickers()
+                    stopWorkoutNotification()
                 }
             }
         }
@@ -200,6 +268,9 @@ class GymViewModel(
                     // Секундомер отдыха тикает непрерывно в фоне
                     if (!_isPerformingSet.value) {
                         _restSeconds.value += 1
+                        if (_isWorkoutNotificationEnabled.value && _restSeconds.value % 5 == 0L) {
+                            updateWorkoutNotification()
+                        }
                     }
                 }
 
@@ -221,6 +292,30 @@ class GymViewModel(
     fun addExerciseToPlan(exercise: Exercise) {
         if (!_workoutPlan.value.any { it.id == exercise.id }) {
             _workoutPlan.value = _workoutPlan.value + exercise
+        }
+    }
+
+    fun addExercisesToPlan(exercisesToAdd: List<Exercise>) {
+        val currentPlan = _workoutPlan.value.toMutableList()
+        val currentIds = currentPlan.map { it.id }.toSet()
+        val toAdd = exercisesToAdd.filter { !currentIds.contains(it.id) }
+        if (toAdd.isNotEmpty()) {
+            currentPlan.addAll(toAdd)
+            _workoutPlan.value = currentPlan
+        }
+    }
+
+    fun createCustomExercise(name: String, muscleGroupId: Long, onCreated: (Exercise) -> Unit) {
+        viewModelScope.launch {
+            val ex = Exercise(
+                name = name.trim(),
+                muscleGroupId = muscleGroupId,
+                notes = "",
+                icon = "dumbbell"
+            )
+            val id = gymDao.insertExercise(ex)
+            val created = ex.copy(id = id)
+            onCreated(created)
         }
     }
 
@@ -319,6 +414,7 @@ class GymViewModel(
     fun startSet() {
         _isPerformingSet.value = true
         _restSeconds.value = 0L
+        updateWorkoutNotification()
     }
 
     fun recordSetAndStartRest(
@@ -352,6 +448,7 @@ class GymViewModel(
 
             _isPerformingSet.value = false
             _restSeconds.value = 0L
+            updateWorkoutNotification()
         }
     }
 
@@ -645,6 +742,37 @@ class GymViewModel(
             exercises = exercisesList,
             variations = variationsList
         )
+    }
+
+    suspend fun exportHistoryMarkdown(): String = getAiExportMarkdown()
+    suspend fun exportHistoryJson(): String = getAiExportJson()
+
+    suspend fun exportBackupToUri(uri: android.net.Uri): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val ctx = context ?: return@withContext false
+            val json = createFullBackup()
+            ctx.contentResolver.openOutputStream(uri)?.use { os ->
+                os.write(json.toByteArray(Charsets.UTF_8))
+                os.flush()
+            }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun restoreBackupFromJson(jsonString: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val success = restoreFromBackup(jsonString)
+            if (success) {
+                Result.success("База данных успешно восстановлена!")
+            } else {
+                Result.failure(Exception("Не удалось восстановить базу данных"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun addSetToHistorySession(

@@ -67,6 +67,8 @@ import com.example.gymtracker.data.model.WorkoutTemplate
 import com.example.gymtracker.data.model.WorkoutTemplateItem
 import com.example.gymtracker.ui.GymViewModel
 import com.example.gymtracker.ui.components.ExerciseIcons
+import com.example.gymtracker.ui.components.ExercisePickerModal
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.PrimaryNeon
 import com.example.gymtracker.ui.theme.SecondaryAccent
 import com.example.gymtracker.ui.theme.SurfaceDark
@@ -77,6 +79,7 @@ fun TemplatesScreen(
     viewModel: GymViewModel,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val folders by viewModel.folders.collectAsState()
     val allTemplates by viewModel.templates.collectAsState()
     val allExercises by viewModel.exercises.collectAsState()
@@ -135,7 +138,7 @@ fun TemplatesScreen(
                 TextButton(onClick = { showCreateFolderDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Папка", fontSize = 13.sp) // Исправлено: один плюс!
+                    Text(strings.newFolderBtn, fontSize = 13.sp)
                 }
             }
 
@@ -465,6 +468,7 @@ private fun TemplateCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var itemsCount by remember { mutableStateOf(0) }
     LaunchedEffect(template.id) {
         itemsCount = viewModel.getTemplateItems(template.id).size
@@ -499,7 +503,7 @@ private fun TemplateCard(
                         }
                     }
                     Text(
-                        text = "Упражнений в плане: $itemsCount",
+                        text = "${strings.exercisesInPlan}: $itemsCount",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -533,7 +537,7 @@ private fun TemplateCard(
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Начать эту тренировку", fontWeight = FontWeight.Bold)
+                Text(strings.startThisWorkout, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -770,111 +774,27 @@ private fun TemplateExerciseManagerModal(
         )
     }
 
-    // ВЫБОР УПРАЖНЕНИЯ ИЗ БАЗЫ С ВОЗМОЖНОСТЬЮ СОЗДАТЬ НОВОЕ ПРЯМО НА МЕСТЕ!
+    // ВЫБОР УПРАЖНЕНИЯ ИЗ БАЗЫ (СОВРЕМЕННЫЙ ПИКЕР)
     if (showAddExerciseFromBase) {
-        var searchQuery by remember { mutableStateOf("") }
-        var showInlineCreateExercise by remember { mutableStateOf(false) }
-
-        val filtered = allExercises.filter { it.name.contains(searchQuery, ignoreCase = true) }
-
-        AlertDialog(
-            onDismissRequest = { showAddExerciseFromBase = false },
-            title = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("База", fontWeight = FontWeight.Bold)
-                    TextButton(
-                        onClick = { showInlineCreateExercise = true },
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text("Создать", fontSize = 12.sp, maxLines = 1)
+        ExercisePickerModal(
+            allExercises = allExercises,
+            muscleGroups = muscleGroups,
+            onDismiss = { showAddExerciseFromBase = false },
+            onSelectExercises = { selectedList ->
+                selectedList.forEach { ex ->
+                    if (items.none { it.exerciseId == ex.id }) {
+                        viewModel.addExerciseToTemplate(template.id, ex.id, null)
                     }
                 }
+                showAddExerciseFromBase = false
+                refreshItems()
             },
-            text = {
-                Column(modifier = Modifier.fillMaxWidth().height(360.dp)) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        label = { Text("Поиск...") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(filtered) { ex ->
-                            val alreadyInPlan = items.any { it.exerciseId == ex.id }
-                            Card(
-                                onClick = {
-                                    if (!alreadyInPlan) {
-                                        viewModel.addExerciseToTemplate(template.id, ex.id, null)
-                                        showAddExerciseFromBase = false
-                                        refreshItems()
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 3.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (alreadyInPlan) SurfaceVariantDark.copy(alpha = 0.4f) else SurfaceVariantDark
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(12.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(ex.name, fontWeight = FontWeight.Medium)
-                                    if (alreadyInPlan) {
-                                        Text("В плане", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
-                                    }
-                                }
-                            }
-                        }
-                    }
+            onCreateCustomExercise = { name, groupId ->
+                viewModel.createCustomExercise(name, groupId) { created ->
+                    viewModel.addExerciseToTemplate(template.id, created.id, null)
+                    refreshItems()
                 }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showAddExerciseFromBase = false }) { Text("Закрыть") }
             }
         )
-
-        // БЫСТРОЕ СОЗДАНИЕ УПРАЖНЕНИЯ ПРЯМО ТУТ
-        if (showInlineCreateExercise) {
-            var newExName by remember { mutableStateOf("") }
-            val firstGroupId = muscleGroups.firstOrNull()?.id ?: 1L
-
-            AlertDialog(
-                onDismissRequest = { showInlineCreateExercise = false },
-                title = { Text("Новое упражнение") },
-                text = {
-                    OutlinedTextField(
-                        value = newExName,
-                        onValueChange = { newExName = it },
-                        label = { Text("Название") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        if (newExName.isNotBlank()) {
-                            viewModel.addExerciseSimple(newExName.trim(), firstGroupId)
-                            showInlineCreateExercise = false
-                        }
-                    }) {
-                        Text("Создать")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showInlineCreateExercise = false }) { Text("Отмена") }
-                }
-            )
-        }
     }
 }

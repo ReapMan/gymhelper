@@ -1,0 +1,145 @@
+package com.example.gymtracker.ui.i18n
+
+val StringsUk = AppStrings(
+    // Bottom Navigation
+    navWorkout = "Тренування",
+    navPrograms = "Програми",
+    navHistory = "Історія",
+    navMenu = "Меню",
+
+    // Live Workout & Roadmap
+    startWorkout = "Почати тренування",
+    startLiveSubtitle = "Натисни «+» або вибери з меню:",
+    startLiveButton = "Вільний старт",
+    startFromTemplateButton = "Обрати програму",
+    recordPastButton = "Записати минуле",
+    workoutPlanEmpty = "План тренування порожній",
+    workoutPlanEmptyDesc = "Натисни «+» вгорі, щоб додати вправи до сценарію.",
+    selectExercise = "Обрати вправу",
+    addExercise = "Додати вправу",
+    finishWorkout = "Завершити тренування",
+    finishWorkoutDialogTitle = "Завершити тренування?",
+    finishWorkoutDialogMsg = "Тренування буде збережено в історію.",
+    workoutNotesPlaceholder = "Нотатки до тренування (самопочуття, памп тощо)",
+    finishBtn = "Завершити",
+    cancelBtn = "Скасувати",
+    deleteExerciseConfirmTitle = "Видалити вправу?",
+    deleteExerciseConfirmMsg = "Видалити <%s> з поточного тренування?",
+    replaceExercise = "Замінити вправу",
+    deleteFromPlan = "Видалити з плану",
+    moveUp = "Перемістити вгору",
+    moveDown = "Перемістити вниз",
+    defaultWorkoutTitle = "Тренування",
+    totalDuration = "Загальна тривалість",
+    renameWorkout = "Перейменувати тренування",
+    renameWorkoutPlaceholder = "Наприклад: Груди + Трицепс",
+    saveBtn = "Зберегти",
+
+    // Minimized Banner & Status
+    workoutRunning = "Триває тренування",
+    returnToWorkout = "До тренування",
+
+    // Focus View (Active Exercise)
+    toRoadmap = "До сценарію",
+    exitFocus = "Вийти з фокусу",
+    setLabel = "Сет",
+    repsLabel = "Повторення",
+    weightLabel = "Вага (кг)",
+    kgUnit = "кг",
+    repsUnit = "повт.",
+    startSet = "Почати підхід",
+    finishSet = "Завершити підхід",
+    recordedSets = "Записані сети",
+    noSetsYet = "Підходів ще немає.",
+    noSetsYetDesc = "Натисніть кнопку нижче, щоб розпочати перший сет.",
+    restTimer = "Відпочинок",
+    restTimerRunning = "Триває відпочинок",
+    prevWorkoutHistory = "Минуле тренування:",
+    noHistoryYet = "Раніше ця вправа не виконувалася",
+    editNotes = "Нотатка до вправи",
+    notesSaved = "Нотатку збережено",
+    variationsTitle = "Фішки / Хвати",
+    standardVariation = "Стандарт",
+    addVariationBtn = "+ Фішка",
+    addVariationTitle = "Нова фішка",
+    variationNamePlaceholder = "Наприклад: Дропсет, Вузький хват",
+
+    // Set Types & Tags
+    setTypeNormal = "Звичайний",
+    setTypeWarmup = "Розминка",
+    setTypeDrop = "Дропсет",
+    setTypeFailure = "До відмови",
+    tagEasy = "Легко",
+    tagFailure = "Відмова",
+    tagWarmup = "Розминка",
+    tagDrop = "Дроп",
+
+    // Edit Set Dialog
+    editSetTitle = "Редагувати підхід",
+    deleteSetConfirmTitle = "Видалити підхід?",
+    deleteSetConfirmMsg = "Ви впевнені, що хочете видалити цей підхід?",
+    deleteBtn = "Видалити",
+
+    // Exercise Picker
+    chooseExerciseTitle = "Вибір вправи",
+    searchPlaceholder = "Пошук за назвою...",
+    allMuscleGroups = "Усі м'язи",
+    createCustomExercise = "+ Своя вправа",
+    addSelectedCount = "Додати до тренування (%d)",
+    noExercisesFound = "Вправ не знайдено",
+    newExerciseNamePlaceholder = "Назва вправи",
+    selectMuscleGroup = "Група м'язів",
+    createAndAddBtn = "Створити та обрати",
+
+    // Templates / Programs
+    programsTitle = "Програми",
+    newFolderBtn = "Папка",
+    newProgramBtn = "Тренування",
+    startThisWorkout = "Почати це тренування",
+    noProgramsYet = "Програм ще немає",
+    editProgramTitle = "Редагувати програму",
+    deleteProgramConfirmTitle = "Видалити програму?",
+    exercisesInPlan = "Вправ у плані",
+
+    // History
+    historyTitle = "Історія",
+    totalWorkouts = "Усього тренувань",
+    noHistoryTitle = "Історія порожня",
+    noHistoryDesc = "Завершіть хоча б одне тренування, щоб побачити статистику.",
+    exportForAi = "Експорт для ШІ",
+
+    // Menu & Settings
+    menuTitle = "Меню",
+    exerciseDatabase = "База вправ",
+    exerciseDatabaseDesc = "Шторки вправ, фішки, іконки та пам'ятки",
+    aiExportTitle = "Експорт для ШІ (AI Export)",
+    aiExportDesc = "Вивантаження для ChatGPT, Claude та Gemini (MD / JSON)",
+    backupRestoreTitle = "Резервне копіювання",
+    backupRestoreDesc = "Експорт бази в JSON, імпорт, автозбереження",
+    settingsTitle = "Налаштування",
+    settingsDesc = "Колірна схема, таймери, поведінка відпочинку",
+    colorSchemeTitle = "Колірна схема",
+    colorSchemeDesc = "Оберіть фірмовий спортивний акцент додатку",
+    languageSettingTitle = "Мова додатку",
+    languageSettingDesc = "Оберіть мову інтерфейсу",
+    notificationSettingTitle = "Сповіщення в шторці",
+    notificationSettingDesc = "Секундомір та таймер відпочинку в панелі сповіщень та на екрані блокування",
+    creatorsLabel = "Творці: reapman & Antigravity",
+    appVersionLabel = "Версія 1.1.0 (Stable)",
+
+    // Notification Texts
+    notifChannelName = "Активне тренування",
+    notifWorkoutActive = "Тренування активне",
+    notifRestTime = "⏱ Відпочинок:",
+    notifOpenApp = "Відкрити зал",
+
+    // Muscle Groups
+    mgChest = "Груди",
+    mgBack = "Спина",
+    mgLegs = "Ноги",
+    mgShoulders = "Плечі",
+    mgBiceps = "Біцепс",
+    mgTriceps = "Трицепс",
+    mgAbs = "Прес",
+    mgOther = "Інше"
+)
