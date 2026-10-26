@@ -100,6 +100,10 @@ fun ExerciseFocusView(
     val restSeconds by viewModel.restSeconds.collectAsState()
     val isPerformingSet by viewModel.isPerformingSet.collectAsState()
 
+    val isSetTagsEnabled by viewModel.isSetTagsEnabled.collectAsState()
+    val availableFeelings by viewModel.availableFeelings.collectAsState()
+    val availableTags by viewModel.availableTags.collectAsState()
+
     val exerciseSets = sessionSets.filter { it.exerciseId == exercise.id }
 
     var showAddSetDialog by remember { mutableStateOf(false) }
@@ -166,19 +170,7 @@ fun ExerciseFocusView(
                         )
                     }
 
-                    IconButton(
-                        onClick = { viewModel.exitExerciseFocus() },
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(SurfaceDark)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = strings.exitFocus,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    Spacer(modifier = Modifier.size(42.dp))
                 }
             }
 
@@ -509,8 +501,13 @@ fun ExerciseFocusView(
             AddSetDialog(
                 initialWeight = initW,
                 initialReps = initR,
+                variations = exerciseVariations,
+                initialVariationId = selectedVariation?.id,
+                isTagsEnabled = isSetTagsEnabled,
+                availableFeelings = availableFeelings,
+                availableTags = availableTags,
                 onDismiss = { showAddSetDialog = false },
-                onConfirm = { w, r, tags, intensity, notes ->
+                onConfirm = { w, r, tags, intensity, notes, varId ->
                     viewModel.recordSetAndStartRest(w, r, tags, intensity, notes)
                     showAddSetDialog = false
                 }
@@ -522,6 +519,9 @@ fun ExerciseFocusView(
             EditSetDialog(
                 set = setToEdit!!,
                 variations = exerciseVariations,
+                isTagsEnabled = isSetTagsEnabled,
+                availableFeelings = availableFeelings,
+                availableTags = availableTags,
                 onDismiss = { setToEdit = null },
                 onConfirm = { updated ->
                     viewModel.updateSet(updated)

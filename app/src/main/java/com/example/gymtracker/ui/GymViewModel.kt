@@ -49,6 +49,9 @@ class GymViewModel(
 
     fun switchTab(tab: ScreenTab) {
         _currentTab.value = tab
+        if (tab == ScreenTab.WORKOUT && activeSession.value != null) {
+            _isWorkoutMinimized.value = false
+        }
     }
 
     // Цветовая тема приложения
@@ -91,6 +94,73 @@ class GymViewModel(
         }
     }
 
+    // Включение/отключение тегов и ощущений в диалогах подходов
+    private val _isSetTagsEnabled = MutableStateFlow(
+        appPrefs?.getBoolean("is_set_tags_enabled", true) ?: true
+    )
+    val isSetTagsEnabled: StateFlow<Boolean> = _isSetTagsEnabled.asStateFlow()
+
+    fun setTagsEnabled(enabled: Boolean) {
+        _isSetTagsEnabled.value = enabled
+        appPrefs?.edit()?.putBoolean("is_set_tags_enabled", enabled)?.apply()
+    }
+
+    // Список доступных ощущений / типов подходов
+    private val defaultFeelingsList = listOf("Обычный", "Разминка", "Дропсет", "До отказа")
+    private val _availableFeelings = MutableStateFlow(
+        appPrefs?.getString("available_feelings_csv", null)?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
+            ?: defaultFeelingsList
+    )
+    val availableFeelings: StateFlow<List<String>> = _availableFeelings.asStateFlow()
+
+    fun addFeeling(feeling: String) {
+        val trimmed = feeling.trim()
+        if (trimmed.isNotBlank() && !_availableFeelings.value.contains(trimmed)) {
+            val updated = _availableFeelings.value + trimmed
+            _availableFeelings.value = updated
+            appPrefs?.edit()?.putString("available_feelings_csv", updated.joinToString(","))?.apply()
+        }
+    }
+
+    fun removeFeeling(feeling: String) {
+        val updated = _availableFeelings.value.filter { it != feeling }
+        _availableFeelings.value = updated
+        appPrefs?.edit()?.putString("available_feelings_csv", updated.joinToString(","))?.apply()
+    }
+
+    fun resetFeelingsToDefault() {
+        _availableFeelings.value = defaultFeelingsList
+        appPrefs?.edit()?.putString("available_feelings_csv", defaultFeelingsList.joinToString(","))?.apply()
+    }
+
+    // Список доступных тегов подходов
+    private val defaultTagsList = listOf("Дроп", "Отказ", "Разминка", "Легко", "Тяжело", "С читингом", "В бинтах")
+    private val _availableTags = MutableStateFlow(
+        appPrefs?.getString("available_tags_csv", null)?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
+            ?: defaultTagsList
+    )
+    val availableTags: StateFlow<List<String>> = _availableTags.asStateFlow()
+
+    fun addTag(tag: String) {
+        val trimmed = tag.trim()
+        if (trimmed.isNotBlank() && !_availableTags.value.contains(trimmed)) {
+            val updated = _availableTags.value + trimmed
+            _availableTags.value = updated
+            appPrefs?.edit()?.putString("available_tags_csv", updated.joinToString(","))?.apply()
+        }
+    }
+
+    fun removeTag(tag: String) {
+        val updated = _availableTags.value.filter { it != tag }
+        _availableTags.value = updated
+        appPrefs?.edit()?.putString("available_tags_csv", updated.joinToString(","))?.apply()
+    }
+
+    fun resetTagsToDefault() {
+        _availableTags.value = defaultTagsList
+        appPrefs?.edit()?.putString("available_tags_csv", defaultTagsList.joinToString(","))?.apply()
+    }
+
     fun startWorkoutNotification() {
         val ctx = context ?: return
         if (!_isWorkoutNotificationEnabled.value) return
@@ -131,6 +201,9 @@ class GymViewModel(
 
     fun minimizeWorkout() {
         _isWorkoutMinimized.value = true
+        if (_currentTab.value == ScreenTab.WORKOUT) {
+            _currentTab.value = ScreenTab.TEMPLATES
+        }
     }
 
     fun maximizeWorkout() {
@@ -224,7 +297,7 @@ class GymViewModel(
                     val elapsed = (System.currentTimeMillis() - session.startTime).coerceAtLeast(0L) / 1000L
                     _workoutSeconds.value = elapsed
                     if (tickerJob == null || tickerJob?.isActive != true) {
-                        _isWorkoutMinimized.value = true
+                        _isWorkoutMinimized.value = _currentTab.value != ScreenTab.WORKOUT
                         startTickers()
                         startWorkoutNotification()
                     }
@@ -465,6 +538,8 @@ class GymViewModel(
             gymDao.createSession(title = title, startTime = System.currentTimeMillis())
             _workoutPlan.value = emptyList()
             _isInExerciseFocus.value = false
+            _isWorkoutMinimized.value = false
+            _currentTab.value = ScreenTab.WORKOUT
             startTickers()
         }
     }
@@ -478,6 +553,7 @@ class GymViewModel(
             }
             _workoutPlan.value = planExercises
             _isInExerciseFocus.value = false
+            _isWorkoutMinimized.value = false
             _currentTab.value = ScreenTab.WORKOUT
             startTickers()
         }

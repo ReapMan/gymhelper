@@ -80,6 +80,9 @@ fun EditWorkoutSessionModal(
     val allExercises by viewModel.exercises.collectAsState()
     val allVariations by viewModel.allVariations.collectAsState()
     val muscleGroups by viewModel.muscleGroups.collectAsState()
+    val isSetTagsEnabled by viewModel.isSetTagsEnabled.collectAsState()
+    val availableFeelings by viewModel.availableFeelings.collectAsState()
+    val availableTags by viewModel.availableTags.collectAsState()
 
     var showAddExerciseDialog by remember { mutableStateOf(false) }
     var exerciseForNewSet by remember { mutableStateOf<Exercise?>(null) }
@@ -357,6 +360,9 @@ fun EditWorkoutSessionModal(
         EditSetDialog(
             set = activeSetForEdit,
             variations = exerciseVariations,
+            isTagsEnabled = isSetTagsEnabled,
+            availableFeelings = availableFeelings,
+            availableTags = availableTags,
             onDismiss = { setForEdit = null },
             onConfirm = { updated ->
                 setForEdit = null
@@ -377,6 +383,9 @@ fun EditWorkoutSessionModal(
             initialWeight = 60f,
             initialReps = 10,
             variations = exerciseVariations,
+            isTagsEnabled = isSetTagsEnabled,
+            availableFeelings = availableFeelings,
+            availableTags = availableTags,
             onDismiss = { exerciseForNewSet = null },
             onConfirm = { w, r, tags, intensity, sNotes, varId ->
                 exerciseForNewSet = null

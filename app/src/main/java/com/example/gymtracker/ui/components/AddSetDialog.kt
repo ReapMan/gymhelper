@@ -1,7 +1,6 @@
 package com.example.gymtracker.ui.components
 
 import androidx.compose.foundation.clickable
-import com.example.gymtracker.data.model.ExerciseVariation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -15,12 +14,15 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -28,6 +30,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -47,9 +50,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gymtracker.data.model.ExerciseVariation
+import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.EasyTagColor
 import com.example.gymtracker.ui.theme.FailureTagColor
 import com.example.gymtracker.ui.theme.TagColor
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -58,33 +64,46 @@ fun AddSetDialog(
     initialReps: Int,
     variations: List<ExerciseVariation> = emptyList(),
     initialVariationId: Long? = null,
+    isTagsEnabled: Boolean = true,
+    availableFeelings: List<String> = emptyList(),
+    availableTags: List<String> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (weight: Float, reps: Int, tags: List<String>, intensity: String, notes: String, variationId: Long?) -> Unit
 ) {
+    val strings = LocalAppStrings.current
+
     var weight by remember { mutableFloatStateOf(if (initialWeight > 0) initialWeight else 60f) }
     var reps by remember { mutableIntStateOf(if (initialReps > 0) initialReps else 10) }
     var selectedVariationId by remember { mutableStateOf<Long?>(initialVariationId) }
 
-    // Состояния для прямого ввода с клавиатуры при клике на центр
     var showDirectWeightInput by remember { mutableStateOf(false) }
     var directWeightText by remember { mutableStateOf("") }
 
     var showDirectRepsInput by remember { mutableStateOf(false) }
     var directRepsText by remember { mutableStateOf("") }
 
-    val defaultTags = listOf("Дропсет", "Другой тренажер", "С читингом", "В бинтах", "Разминка")
+    val defaultTagList = remember(availableTags) {
+        if (availableTags.isNotEmpty()) availableTags else listOf(strings.tagDrop, strings.tagFailure, strings.tagWarmup, strings.tagEasy)
+    }
     val selectedTags = remember { mutableStateListOf<String>() }
 
-    val intensityOptions = listOf("Легко", "Нормально", "Тяжело", "Отказ")
+    val defaultFeelingList = remember(availableFeelings) {
+        if (availableFeelings.isNotEmpty()) availableFeelings else listOf(
+            strings.setTypeNormal,
+            strings.setTypeWarmup,
+            strings.setTypeDrop,
+            strings.setTypeFailure
+        )
+    }
     var selectedIntensity by remember { mutableStateOf("") }
-
     var notes by remember { mutableStateOf("") }
+    var showNotesInput by remember { mutableStateOf(false) }
 
-    // Диалог прямого ввода веса
+    // Прямой ввод веса
     if (showDirectWeightInput) {
         AlertDialog(
             onDismissRequest = { showDirectWeightInput = false },
-            title = { Text("Введи точный вес (кг)") },
+            title = { Text(strings.weightLabel) },
             text = {
                 OutlinedTextField(
                     value = directWeightText,
@@ -96,23 +115,25 @@ fun AddSetDialog(
             },
             confirmButton = {
                 Button(onClick = {
-                    directWeightText.toFloatOrNull()?.let { weight = it }
+                    directWeightText.replace(',', '.').toFloatOrNull()?.let {
+                        weight = (((it * 10).roundToInt()) / 10f).coerceAtLeast(0f)
+                    }
                     showDirectWeightInput = false
                 }) {
                     Text("OK")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDirectWeightInput = false }) { Text("Отмена") }
+                TextButton(onClick = { showDirectWeightInput = false }) { Text(strings.cancelBtn) }
             }
         )
     }
 
-    // Диалог прямого ввода повторений
+    // Прямой ввод повторений
     if (showDirectRepsInput) {
         AlertDialog(
             onDismissRequest = { showDirectRepsInput = false },
-            title = { Text("Введи точное число повторений") },
+            title = { Text(strings.repsLabel) },
             text = {
                 OutlinedTextField(
                     value = directRepsText,
@@ -131,17 +152,19 @@ fun AddSetDialog(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDirectRepsInput = false }) { Text("Отмена") }
+                TextButton(onClick = { showDirectRepsInput = false }) { Text(strings.cancelBtn) }
             }
         )
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.navigationBarsPadding().imePadding(),
+        modifier = Modifier
+            .navigationBarsPadding()
+            .imePadding(),
         title = {
             Text(
-                "Запись подхода",
+                strings.recordedSets.ifBlank { "Запись подхода" },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -154,32 +177,23 @@ fun AddSetDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // ВЕС (Шаг 1 кг + тап по центру для ввода)
+                // ВЕС
                 Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Вес снаряда",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "нажми на число для ввода",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
+                    Text(
+                        text = strings.weightLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        FilledTonalIconButton(onClick = { if (weight >= 1f) weight -= 1f }) {
-                            Icon(Icons.Default.Remove, "-1")
+                        FilledTonalIconButton(onClick = {
+                            weight = (((weight - 0.5f) * 10).roundToInt() / 10f).coerceAtLeast(0f)
+                        }) {
+                            Icon(Icons.Default.Remove, "-0.5")
                         }
 
                         Surface(
@@ -193,36 +207,55 @@ fun AddSetDialog(
                                 .padding(horizontal = 16.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "${if (weight % 1 == 0f) weight.toInt() else weight} кг",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Black
+                                text = "${if (weight % 1 == 0f) weight.toInt() else weight} ${strings.kgUnit}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
-                        FilledTonalIconButton(onClick = { weight += 1f }) {
-                            Icon(Icons.Default.Add, "+1")
+                        FilledTonalIconButton(onClick = {
+                            weight = (((weight + 0.5f) * 10).roundToInt() / 10f)
+                        }) {
+                            Icon(Icons.Default.Add, "+0.5")
+                        }
+                    }
+
+                    // Быстрые шаги веса: -5, -2.5, -0.5, +0.5, +2.5, +5
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        listOf(-5f, -2.5f, -0.5f, 0.5f, 2.5f, 5f).forEach { step ->
+                            val label = if (step > 0) "+${if (step % 1 == 0f) step.toInt() else step}" else "${if (step % 1 == 0f) step.toInt() else step}"
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                                modifier = Modifier
+                                    .clickable {
+                                        weight = (((weight + step) * 10).roundToInt() / 10f).coerceAtLeast(0f)
+                                    }
+                                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (step > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
 
-                // ПОВТОРЕНИЯ (Шаг 1 + тап по центру)
+                // ПОВТОРЕНИЯ
                 Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Повторения",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "нажми на число для ввода",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
+                    Text(
+                        text = strings.repsLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -241,12 +274,12 @@ fun AddSetDialog(
                                     directRepsText = "$reps"
                                     showDirectRepsInput = true
                                 }
-                                .padding(horizontal = 24.dp, vertical = 6.dp)
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "$reps",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Black
+                                text = "$reps ${strings.repsUnit}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
@@ -256,136 +289,139 @@ fun AddSetDialog(
                     }
                 }
 
-                // ИНТЕНСИВНОСТЬ
-                Column {
-                    Text(
-                        text = "Ощущение / Интенсивность (необязательно):",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        intensityOptions.forEach { opt ->
-                            val isSelected = selectedIntensity == opt
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = {
-                                    selectedIntensity = if (isSelected) "" else opt
-                                },
-                                label = { Text(opt) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = when (opt) {
-                                        "Отказ" -> FailureTagColor.copy(alpha = 0.3f)
-                                        "Тяжело" -> TagColor.copy(alpha = 0.3f)
-                                        "Легко" -> EasyTagColor.copy(alpha = 0.3f)
-                                        else -> MaterialTheme.colorScheme.primaryContainer
-                                    }
-                                )
-                            )
-                        }
-                    }
-                }
-
-                // ТЕГИ СЕТА
-                Column {
-                    Text(
-                        text = "Теги (необязательно):",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        defaultTags.forEach { tag ->
-                            val isSelected = selectedTags.contains(tag)
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = {
-                                    if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
-                                },
-                                label = { Text(tag) }
-                            )
-                        }
-                    }
-                }
-
-                // ФИШКА УПРАЖНЕНИЯ
+                // ВАРИАЦИИ / ХВАТ
                 if (variations.isNotEmpty()) {
                     Column {
                         Text(
-                            text = "Фишка упражнения:",
+                            text = strings.variationsTitle,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             FilterChip(
                                 selected = selectedVariationId == null,
                                 onClick = { selectedVariationId = null },
-                                label = { Text("Стандарт") }
+                                label = { Text(strings.standardVariation) },
+                                shape = RoundedCornerShape(8.dp)
                             )
                             variations.forEach { v ->
                                 FilterChip(
                                     selected = selectedVariationId == v.id,
                                     onClick = { selectedVariationId = v.id },
-                                    label = { Text(v.name) }
+                                    label = { Text(v.name) },
+                                    shape = RoundedCornerShape(8.dp)
                                 )
                             }
                         }
                     }
                 }
 
-                // ЗАМЕТКА К СЕТУ
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Заметка к подходу (опционально)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // ТИП ПОДХОДА / ОЩУЩЕНИЕ (если включено в настройках)
+                if (isTagsEnabled) {
+                    Column {
+                        Text(
+                            text = strings.setLabel,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            defaultFeelingList.forEach { opt ->
+                                FilterChip(
+                                    selected = selectedIntensity.equals(opt, ignoreCase = true),
+                                    onClick = {
+                                        selectedIntensity = if (selectedIntensity == opt) "" else opt
+                                    },
+                                    label = { Text(opt) },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // ТЕГИ ПОДХОДА
+                    Column {
+                        Text(
+                            text = "Теги",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            defaultTagList.forEach { tag ->
+                                val isSelected = selectedTags.contains(tag)
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
+                                    },
+                                    label = { Text(tag) },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = when {
+                                            tag.contains("Отказ") || tag.contains("Відмова") || tag.contains("ჩავარდნა") -> FailureTagColor.copy(alpha = 0.3f)
+                                            tag.contains("Легко") || tag.contains("მარტივი") -> EasyTagColor.copy(alpha = 0.3f)
+                                            else -> TagColor.copy(alpha = 0.3f)
+                                        }
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // КОМПАКТНАЯ ЗАМЕТКА (кнопка с карандашиком, экономящая место)
+                if (!showNotesInput && notes.isBlank()) {
+                    TextButton(
+                        onClick = { showNotesInput = true },
+                        modifier = Modifier.align(Alignment.Start)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Добавить заметку к подходу", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    OutlinedTextField(
+                        value = notes,
+                        onValueChange = { notes = it },
+                        label = { Text(strings.workoutNotesPlaceholder) },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                notes = ""
+                                showNotesInput = false
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = "Убрать", modifier = Modifier.size(16.dp))
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 2
+                    )
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    onConfirm(weight, reps, selectedTags.toList(), selectedIntensity, notes, selectedVariationId)
-                    onDismiss()
+                    onConfirm(weight, reps, selectedTags.toList(), selectedIntensity, notes.trim(), selectedVariationId)
                 }
             ) {
-                Text("Сохранить подход", fontWeight = FontWeight.Bold)
+                Text(strings.saveBtn)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(strings.cancelBtn)
             }
-        }
-    )
-}
-
-@Composable
-fun AddSetDialog(
-    initialWeight: Float,
-    initialReps: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (weight: Float, reps: Int, tags: List<String>, intensity: String, notes: String) -> Unit
-) {
-    AddSetDialog(
-        initialWeight = initialWeight,
-        initialReps = initialReps,
-        variations = emptyList(),
-        initialVariationId = null,
-        onDismiss = onDismiss,
-        onConfirm = { w, r, tags, intensity, notes, _ ->
-            onConfirm(w, r, tags, intensity, notes)
         }
     )
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +21,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -27,6 +30,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -52,12 +56,16 @@ import com.example.gymtracker.ui.i18n.LocalAppStrings
 import com.example.gymtracker.ui.theme.EasyTagColor
 import com.example.gymtracker.ui.theme.FailureTagColor
 import com.example.gymtracker.ui.theme.TagColor
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditSetDialog(
     set: WorkoutSet,
     variations: List<ExerciseVariation> = emptyList(),
+    isTagsEnabled: Boolean = true,
+    availableFeelings: List<String> = emptyList(),
+    availableTags: List<String> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (updatedSet: WorkoutSet) -> Unit
 ) {
@@ -73,7 +81,9 @@ fun EditSetDialog(
     var showDirectRepsInput by remember { mutableStateOf(false) }
     var directRepsText by remember { mutableStateOf("") }
 
-    val defaultTags = listOf(strings.tagDrop, strings.tagFailure, strings.tagWarmup, strings.tagEasy)
+    val defaultTagList = remember(availableTags) {
+        if (availableTags.isNotEmpty()) availableTags else listOf(strings.tagDrop, strings.tagFailure, strings.tagWarmup, strings.tagEasy)
+    }
     val selectedTags = remember {
         mutableStateListOf<String>().apply {
             if (set.tags.isNotBlank()) {
@@ -82,14 +92,17 @@ fun EditSetDialog(
         }
     }
 
-    val intensityOptions = listOf(
-        strings.setTypeNormal,
-        strings.setTypeWarmup,
-        strings.setTypeDrop,
-        strings.setTypeFailure
-    )
+    val defaultFeelingList = remember(availableFeelings) {
+        if (availableFeelings.isNotEmpty()) availableFeelings else listOf(
+            strings.setTypeNormal,
+            strings.setTypeWarmup,
+            strings.setTypeDrop,
+            strings.setTypeFailure
+        )
+    }
     var selectedIntensity by remember { mutableStateOf(set.intensityStatus) }
     var notes by remember { mutableStateOf(set.notes) }
+    var showNotesInput by remember { mutableStateOf(set.notes.isNotBlank()) }
 
     // Прямой ввод веса
     if (showDirectWeightInput) {
@@ -107,7 +120,9 @@ fun EditSetDialog(
             },
             confirmButton = {
                 Button(onClick = {
-                    directWeightText.toFloatOrNull()?.let { weight = it }
+                    directWeightText.replace(',', '.').toFloatOrNull()?.let {
+                        weight = (((it * 10).roundToInt()) / 10f).coerceAtLeast(0f)
+                    }
                     showDirectWeightInput = false
                 }) {
                     Text("OK")
@@ -169,25 +184,21 @@ fun EditSetDialog(
             ) {
                 // ВЕС
                 Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = strings.weightLabel,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    Text(
+                        text = strings.weightLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        FilledTonalIconButton(onClick = { if (weight >= 1f) weight -= 1f }) {
-                            Icon(Icons.Default.Remove, "-1")
+                        FilledTonalIconButton(onClick = {
+                            weight = (((weight - 0.5f) * 10).roundToInt() / 10f).coerceAtLeast(0f)
+                        }) {
+                            Icon(Icons.Default.Remove, "-0.5")
                         }
 
                         Surface(
@@ -207,33 +218,36 @@ fun EditSetDialog(
                             )
                         }
 
-                        FilledTonalIconButton(onClick = { weight += 1f }) {
-                            Icon(Icons.Default.Add, "+1")
+                        FilledTonalIconButton(onClick = {
+                            weight = (((weight + 0.5f) * 10).roundToInt() / 10f)
+                        }) {
+                            Icon(Icons.Default.Add, "+0.5")
                         }
                     }
 
-                    // Быстрые шаги веса
+                    // Быстрые шаги веса: -5, -2.5, -0.5, +0.5, +2.5, +5
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        listOf(-5f, -2.5f, 2.5f, 5f).forEach { step ->
+                        listOf(-5f, -2.5f, -0.5f, 0.5f, 2.5f, 5f).forEach { step ->
+                            val label = if (step > 0) "+${if (step % 1 == 0f) step.toInt() else step}" else "${if (step % 1 == 0f) step.toInt() else step}"
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
                                 modifier = Modifier
                                     .clickable {
-                                        val newW = weight + step
-                                        if (newW >= 0f) weight = newW
+                                        weight = (((weight + step) * 10).roundToInt() / 10f).coerceAtLeast(0f)
                                     }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .padding(horizontal = 6.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = if (step > 0) "+$step" else "$step",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium
+                                    text = label,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (step > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -311,72 +325,93 @@ fun EditSetDialog(
                     }
                 }
 
-                // ТИП ПОДХОДА / ИНТЕНСИВНОСТЬ
-                Column {
-                    Text(
-                        text = strings.setLabel,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        intensityOptions.forEach { opt ->
-                            FilterChip(
-                                selected = selectedIntensity.equals(opt, ignoreCase = true),
-                                onClick = {
-                                    selectedIntensity = if (selectedIntensity == opt) "" else opt
-                                },
-                                label = { Text(opt) },
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                        }
-                    }
-                }
-
-                // ТЕГИ
-                Column {
-                    Text(
-                        text = "Теги",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        defaultTags.forEach { tag ->
-                            val isSelected = selectedTags.contains(tag)
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = {
-                                    if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
-                                },
-                                label = { Text(tag) },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = when {
-                                        tag.contains("Отказ") || tag.contains("Відмова") || tag.contains("ჩავარდნა") -> FailureTagColor.copy(alpha = 0.3f)
-                                        tag.contains("Легко") || tag.contains("მარტივი") -> EasyTagColor.copy(alpha = 0.3f)
-                                        else -> TagColor.copy(alpha = 0.3f)
-                                    }
+                // ТИП ПОДХОДА / ОЩУЩЕНИЕ (если включено в настройках)
+                if (isTagsEnabled) {
+                    Column {
+                        Text(
+                            text = strings.setLabel,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            defaultFeelingList.forEach { opt ->
+                                FilterChip(
+                                    selected = selectedIntensity.equals(opt, ignoreCase = true),
+                                    onClick = {
+                                        selectedIntensity = if (selectedIntensity == opt) "" else opt
+                                    },
+                                    label = { Text(opt) },
+                                    shape = RoundedCornerShape(8.dp)
                                 )
-                            )
+                            }
+                        }
+                    }
+
+                    // ТЕГИ ПОДХОДА
+                    Column {
+                        Text(
+                            text = "Теги",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            defaultTagList.forEach { tag ->
+                                val isSelected = selectedTags.contains(tag)
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
+                                    },
+                                    label = { Text(tag) },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = when {
+                                            tag.contains("Отказ") || tag.contains("Відмова") || tag.contains("ჩავარდნა") -> FailureTagColor.copy(alpha = 0.3f)
+                                            tag.contains("Легко") || tag.contains("марტივი") -> EasyTagColor.copy(alpha = 0.3f)
+                                            else -> TagColor.copy(alpha = 0.3f)
+                                        }
+                                    )
+                                )
+                            }
                         }
                     }
                 }
 
-                // ЗАМЕТКА
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text(strings.workoutNotesPlaceholder) },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 2
-                )
+                // КОМПАКТНАЯ ЗАМЕТКА (кнопка с карандашиком, экономящая место)
+                if (!showNotesInput && notes.isBlank()) {
+                    TextButton(
+                        onClick = { showNotesInput = true },
+                        modifier = Modifier.align(Alignment.Start)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Добавить заметку к подходу", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    OutlinedTextField(
+                        value = notes,
+                        onValueChange = { notes = it },
+                        label = { Text(strings.workoutNotesPlaceholder) },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                notes = ""
+                                showNotesInput = false
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = "Убрать", modifier = Modifier.size(16.dp))
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 2
+                    )
+                }
             }
         },
         confirmButton = {

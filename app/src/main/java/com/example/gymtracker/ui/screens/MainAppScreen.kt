@@ -62,16 +62,16 @@ fun MainAppScreen(
     val isWorkoutMinimized by viewModel.isWorkoutMinimized.collectAsState()
     val workoutSeconds by viewModel.workoutSeconds.collectAsState()
 
-    // Если тренировки нет, либо она свернута в фон — нижняя панель навигации доступна
-    val showBottomBar = activeSession == null || isWorkoutMinimized
+    // Если тренировки нет, либо мы на других вкладках (Программы, История, Меню) — нижняя панель навигации доступна
+    val showBottomBar = activeSession == null || currentTab != ScreenTab.WORKOUT
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = BackgroundDark,
         bottomBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // ПЛАВАЮЩИЙ БАННЕР АКТИВНОЙ ТРЕНИРОВКИ В ФОНЕ (ПОВЕРХ ВСЕХ ВКЛАДОК)
-                if (activeSession != null && isWorkoutMinimized) {
+                // ПЛАВАЮЩИЙ БАННЕР АКТИВНОЙ ТРЕНИРОВКИ В ФОНЕ (ТОЛЬКО НА ДРУГИХ ВКЛАДКАХ: Программы, История, Меню)
+                if (activeSession != null && currentTab != ScreenTab.WORKOUT) {
                     WorkoutRunningBanner(
                         session = activeSession!!,
                         workoutSeconds = workoutSeconds,

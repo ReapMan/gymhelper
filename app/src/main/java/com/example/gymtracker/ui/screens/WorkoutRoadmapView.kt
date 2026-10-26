@@ -103,7 +103,7 @@ fun WorkoutRoadmapView(
         return if (h > 0) "%02d:%02d:%02d".format(h, m, s) else "%02d:%02d".format(m, s)
     }
 
-    BackHandler(enabled = !isWorkoutMinimized) {
+    BackHandler {
         viewModel.minimizeWorkout()
     }
 
@@ -128,22 +128,20 @@ fun WorkoutRoadmapView(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        if (!isWorkoutMinimized) {
-                            IconButton(
-                                onClick = { viewModel.minimizeWorkout() },
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .background(SurfaceVariantDark)
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = strings.returnToWorkout,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
+                        IconButton(
+                            onClick = { viewModel.minimizeWorkout() },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(SurfaceVariantDark)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Свернуть тренировку",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
+                        Spacer(modifier = Modifier.width(12.dp))
 
                         // Название тренировки + возможность быстро переименовать
                         Column(

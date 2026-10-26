@@ -125,7 +125,7 @@ val StringsUk = AppStrings(
     notificationSettingTitle = "Сповіщення в шторці",
     notificationSettingDesc = "Секундомір та таймер відпочинку в панелі сповіщень та на екрані блокування",
     creatorsLabel = "Творці: reapman & Antigravity",
-    appVersionLabel = "Версія 1.1.0 (Stable)",
+    appVersionLabel = "Версія 1.1.1",
 
     // Notification Texts
     notifChannelName = "Активне тренування",

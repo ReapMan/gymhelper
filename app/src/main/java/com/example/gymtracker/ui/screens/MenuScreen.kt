@@ -13,6 +13,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +30,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
@@ -53,6 +58,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -102,6 +108,7 @@ enum class MenuSubScreen {
     SETTINGS
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MenuScreen(
     viewModel: GymViewModel,
@@ -324,6 +331,15 @@ fun MenuScreen(
             val currentThemeColor by viewModel.themeColor.collectAsState()
             val currentLanguage by viewModel.appLanguage.collectAsState()
             val isWorkoutNotificationEnabled by viewModel.isWorkoutNotificationEnabled.collectAsState()
+            val isSetTagsEnabled by viewModel.isSetTagsEnabled.collectAsState()
+            val availableFeelings by viewModel.availableFeelings.collectAsState()
+            val availableTags by viewModel.availableTags.collectAsState()
+
+            var showAddFeelingDialog by remember { mutableStateOf(false) }
+            var newFeelingText by remember { mutableStateOf("") }
+
+            var showAddTagDialog by remember { mutableStateOf(false) }
+            var newTagText by remember { mutableStateOf("") }
 
             Column(
                 modifier = modifier
@@ -476,6 +492,173 @@ fun MenuScreen(
                     }
                 }
 
+                // КАРТОЧКА: ТЕГИ И ОЩУЩЕНИЯ В ПОДХОДАХ
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Label,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text("Теги и ощущения", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        "Показывать кнопки тегов и типа сета при записи подходов",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Switch(
+                                checked = isSetTagsEnabled,
+                                onCheckedChange = { viewModel.setTagsEnabled(it) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+
+                        if (isSetTagsEnabled) {
+                            // Блок: Ощущения / Тип сета
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    text = "Ощущения / Тип сета:",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    availableFeelings.forEach { feeling ->
+                                        FilterChip(
+                                            selected = true,
+                                            onClick = { },
+                                            label = { Text(feeling, fontSize = 12.sp) },
+                                            trailingIcon = {
+                                                if (availableFeelings.size > 1) {
+                                                    Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = "Удалить",
+                                                        modifier = Modifier
+                                                            .size(14.dp)
+                                                            .clickable { viewModel.removeFeeling(feeling) }
+                                                    )
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                    }
+                                    Surface(
+                                        modifier = Modifier.clickable {
+                                            newFeelingText = ""
+                                            showAddFeelingDialog = true
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Добавить", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Блок: Теги подхода
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    text = "Теги подхода:",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    availableTags.forEach { tag ->
+                                        FilterChip(
+                                            selected = true,
+                                            onClick = { },
+                                            label = { Text(tag, fontSize = 12.sp) },
+                                            trailingIcon = {
+                                                if (availableTags.size > 1) {
+                                                    Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = "Удалить",
+                                                        modifier = Modifier
+                                                            .size(14.dp)
+                                                            .clickable { viewModel.removeTag(tag) }
+                                                    )
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                    }
+                                    Surface(
+                                        modifier = Modifier.clickable {
+                                            newTagText = ""
+                                            showAddTagDialog = true
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Добавить", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                                        }
+                                    }
+                                }
+                            }
+
+                            TextButton(
+                                onClick = {
+                                    viewModel.resetFeelingsToDefault()
+                                    viewModel.resetTagsToDefault()
+                                },
+                                modifier = Modifier.align(Alignment.End)
+                            ) {
+                                Text("Сбросить по умолчанию", fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                            }
+                        }
+                    }
+                }
+
                 // КАРТОЧКА: ВЫБОР ЦВЕТОВОЙ СХЕМЫ
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -563,6 +746,68 @@ fun MenuScreen(
                             }
                         }
                     }
+                }
+
+                if (showAddFeelingDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showAddFeelingDialog = false },
+                        title = { Text("Новое ощущение / тип сета") },
+                        text = {
+                            OutlinedTextField(
+                                value = newFeelingText,
+                                onValueChange = { newFeelingText = it },
+                                label = { Text("Название (например: Памп)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                if (newFeelingText.isNotBlank()) {
+                                    viewModel.addFeeling(newFeelingText.trim())
+                                    showAddFeelingDialog = false
+                                }
+                            }) {
+                                Text(strings.saveBtn)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showAddFeelingDialog = false }) {
+                                Text(strings.cancelBtn)
+                            }
+                        }
+                    )
+                }
+
+                if (showAddTagDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showAddTagDialog = false },
+                        title = { Text("Новый тег подхода") },
+                        text = {
+                            OutlinedTextField(
+                                value = newTagText,
+                                onValueChange = { newTagText = it },
+                                label = { Text("Название тега (например: Резина)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                if (newTagText.isNotBlank()) {
+                                    viewModel.addTag(newTagText.trim())
+                                    showAddTagDialog = false
+                                }
+                            }) {
+                                Text(strings.saveBtn)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showAddTagDialog = false }) {
+                                Text(strings.cancelBtn)
+                            }
+                        }
+                    )
                 }
             }
         }

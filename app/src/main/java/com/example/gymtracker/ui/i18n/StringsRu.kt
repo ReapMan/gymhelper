@@ -125,7 +125,7 @@ val StringsRu = AppStrings(
     notificationSettingTitle = "Уведомление в шторке",
     notificationSettingDesc = "Секундомер и таймер отдыха в панели уведомлений и на экране блокировки",
     creatorsLabel = "Создатели: reapman & Antigravity",
-    appVersionLabel = "Версия 1.1.0 (Stable)",
+    appVersionLabel = "Версия 1.1.1",
 
     // Notification Texts
     notifChannelName = "Активная тренировка",
