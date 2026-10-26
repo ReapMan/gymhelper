@@ -83,7 +83,7 @@
 
 | Версия | Ссылка | Размер | Описание |
 | :--- | :--- | :--- | :--- |
-| **v1.1.0 (Latest)** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.0-reapman.apk) | `14.5 МБ` | 🔔 Уведомления и таймер в шторке, 🌐 Мультиязычность (RU/UK/KA), 📱 Фикс 3-кнопочной навигации, ✏️ Редактирование на лету, 🏋️ Полноэкранный пикер |
+| **v1.1.0 (Latest)** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.0-reapman.apk) | `14.5 МБ` | Таймер в шторке, мультиязычность, удобный выбор упражнений |
 | **v1.0.1** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.0.1-reapman.apk) | `14.4 МБ` | Темы оформления, горизонтальный виджет, UI-полировка |
 | **v1.0.0** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.0.0-reapman.apk) | `14.4 МБ` | Первый стабильный релиз |
 
