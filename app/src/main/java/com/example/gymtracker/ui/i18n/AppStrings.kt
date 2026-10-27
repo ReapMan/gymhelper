@@ -87,6 +87,7 @@ data class AppStrings(
     val searchPlaceholder: String,
     val allMuscleGroups: String,
     val createCustomExercise: String,
+    val createCustomExerciseShort: String,
     val addSelectedCount: String,
     val noExercisesFound: String,
     val newExerciseNamePlaceholder: String,

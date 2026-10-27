@@ -85,6 +85,7 @@ val StringsKa = AppStrings(
     searchPlaceholder = "ძებნა სახელით...",
     allMuscleGroups = "ყველა კუნთი",
     createCustomExercise = "+ საკუთარი ვარჯიში",
+    createCustomExerciseShort = "საკუთარი",
     addSelectedCount = "ვარჯიშში დამატება (%d)",
     noExercisesFound = "ვარჯიში ვერ მოიძებნა",
     newExerciseNamePlaceholder = "ვარჯიშის სახელი",
@@ -125,7 +126,7 @@ val StringsKa = AppStrings(
     notificationSettingTitle = "შეტყობინება ფარდაში",
     notificationSettingDesc = "წამმზომი და დასვენების ტაიმერი შეტყობინებების პანელში",
     creatorsLabel = "შემქმნელები: reapman & Antigravity",
-    appVersionLabel = "ვერსია 1.1.2",
+    appVersionLabel = "ვერსია 1.1.3",
 
     // Notification Texts
     notifChannelName = "აქტიური ვარჯიში",

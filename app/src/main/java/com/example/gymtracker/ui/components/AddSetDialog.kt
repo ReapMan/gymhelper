@@ -1,12 +1,15 @@
 package com.example.gymtracker.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -224,26 +227,39 @@ fun AddSetDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         listOf(-5f, -2.5f, -0.5f, 0.5f, 2.5f, 5f).forEach { step ->
                             val label = if (step > 0) "+${if (step % 1 == 0f) step.toInt() else step}" else "${if (step % 1 == 0f) step.toInt() else step}"
+                            val isPlus = step > 0
                             Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                                onClick = {
+                                    weight = (((weight + step) * 10).roundToInt() / 10f).coerceAtLeast(0f)
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isPlus) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) 
+                                        else MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(
+                                    1.dp, 
+                                    if (isPlus) MaterialTheme.colorScheme.primary.copy(alpha = 0.45f) 
+                                    else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                                ),
                                 modifier = Modifier
-                                    .clickable {
-                                        weight = (((weight + step) * 10).roundToInt() / 10f).coerceAtLeast(0f)
-                                    }
-                                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                                    .weight(1f)
+                                    .height(38.dp)
                             ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = if (step > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                )
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isPlus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }

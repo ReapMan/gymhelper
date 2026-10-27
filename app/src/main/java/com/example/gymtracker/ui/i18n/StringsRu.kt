@@ -85,6 +85,7 @@ val StringsRu = AppStrings(
     searchPlaceholder = "Поиск по названию...",
     allMuscleGroups = "Все мышцы",
     createCustomExercise = "+ Свое упражнение",
+    createCustomExerciseShort = "Своё",
     addSelectedCount = "Добавить в тренировку (%d)",
     noExercisesFound = "Упражнений не найдено",
     newExerciseNamePlaceholder = "Название упражнения",
@@ -125,7 +126,7 @@ val StringsRu = AppStrings(
     notificationSettingTitle = "Уведомление в шторке",
     notificationSettingDesc = "Секундомер и таймер отдыха в панели уведомлений и на экране блокировки",
     creatorsLabel = "Создатели: reapman & Antigravity",
-    appVersionLabel = "Версия 1.1.2",
+    appVersionLabel = "Версия 1.1.3",
 
     // Notification Texts
     notifChannelName = "Активная тренировка",

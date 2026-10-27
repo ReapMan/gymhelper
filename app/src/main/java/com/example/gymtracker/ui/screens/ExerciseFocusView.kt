@@ -61,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.model.Exercise
@@ -277,7 +278,7 @@ fun ExerciseFocusView(
                             }
                         }
 
-                        // Подсказка прошлого подхода
+                        // Подсказка прошлого подхода + кнопка истории
                         Spacer(modifier = Modifier.height(10.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -286,8 +287,10 @@ fun ExerciseFocusView(
                         ) {
                             if (lastSetHint != null) {
                                 Surface(
+                                    onClick = { showPyramidHistoryDialog = true },
                                     color = PrimaryContainerDark.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(8.dp)
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f)
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -301,28 +304,45 @@ fun ExerciseFocusView(
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         val varSuffix = selectedVariation?.let { " (${it.name})" } ?: ""
+                                        val weightText = if (lastSetHint!!.weightKg % 1 == 0f) lastSetHint!!.weightKg.toInt() else lastSetHint!!.weightKg
                                         Text(
-                                            text = "${strings.prevWorkoutHistory}$varSuffix ${if (lastSetHint!!.weightKg % 1 == 0f) lastSetHint!!.weightKg.toInt() else lastSetHint!!.weightKg} ${strings.kgUnit} × ${lastSetHint!!.reps}",
+                                            text = "${strings.prevWorkoutHistory}$varSuffix $weightText ${strings.kgUnit} × ${lastSetHint!!.reps}",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = MaterialTheme.colorScheme.primary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
                                 }
+                                Spacer(modifier = Modifier.width(8.dp))
                             } else {
-                                Spacer(modifier = Modifier.width(1.dp))
+                                Spacer(modifier = Modifier.weight(1f))
                             }
 
                             // Кнопка истории прошлых тренировок
-                            OutlinedButton(
+                            Button(
                                 onClick = { showPyramidHistoryDialog = true },
                                 shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = SurfaceVariantDark,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ),
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                modifier = Modifier.height(32.dp)
+                                modifier = Modifier.height(34.dp)
                             ) {
-                                Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = SecondaryAccent
+                                )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(strings.prevWorkoutHistory, fontSize = 11.sp)
+                                Text(
+                                    text = strings.historyTitle,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }

@@ -285,7 +285,7 @@ fun MenuScreen(
                         )
                         Spacer(modifier = Modifier.height(3.dp))
                         Text(
-                            text = strings.appVersionLabel,
+                            text = "${strings.appVersionLabel.substringBeforeLast(" ")} ${com.example.gymtracker.BuildConfig.VERSION_NAME}",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

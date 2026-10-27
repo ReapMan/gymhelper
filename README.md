@@ -7,7 +7,7 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Version-1.1.2%20Stable-00E676?style=for-the-badge&logo=android)](https://github.com/ReapMan/gymhelper/releases)
+[![Version](https://img.shields.io/badge/Version-1.1.3%20Stable-00E676?style=for-the-badge&logo=android)](https://github.com/ReapMan/gymhelper/releases)
 [![Platform](https://img.shields.io/badge/Platform-Android%207.0%2B-2979FF?style=for-the-badge&logo=android)](https://github.com/ReapMan/gymhelper)
 [![UI](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3-4285F4?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![DB](https://img.shields.io/badge/Storage-SQLite%20WAL-00E5FF?style=for-the-badge&logo=sqlite)](https://www.sqlite.org/wal.html)
@@ -17,7 +17,7 @@
 
 <br/>
 
-[![Download APK](https://img.shields.io/badge/⚡%20СКАЧАТЬ%20APK-GymHelper%20v1.1.2%20(14.5%20МБ)-00E676?style=for-the-badge&logo=android&logoColor=black)](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.2-reapman.apk)
+[![Download APK](https://img.shields.io/badge/⚡%20СКАЧАТЬ%20APK-GymHelper%20v1.1.3%20(14.5%20МБ)-00E676?style=for-the-badge&logo=android&logoColor=black)](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.3-reapman.apk)
 
 </div>
 
@@ -97,13 +97,12 @@
 
 | Версия | Ссылка | Размер | Описание |
 | :--- | :--- | :--- | :--- |
-| **v1.1.2 (Latest)** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.2-reapman.apk) | `14.5 МБ` | Хотфикс фоновой службы для Android 14+, мультиязычность, быстрые кнопки веса, настраиваемые теги |
-| **v1.1.1** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.1-reapman.apk) | `14.5 МБ` | Мультиязычность (UK, KA), уведомление в шторке, быстрые кнопки веса, настраиваемые теги, фиксы инсетов и навигации |
+| **v1.1.3 (Latest)** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.1.3-reapman.apk) | `14.5 МБ` | Стабильный релиз v1.1: уведомления в шторке с нативным хронометром и таймером, полная мультиязычность (RU/UK/KA), быстрые кнопки веса, настройка тегов/ощущений в меню, полировка AMOLED интерфейса |
 | **v1.0.1** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.0.1-reapman.apk) | `14.4 МБ` | Темы оформления, горизонтальный виджет, UI-полировка |
 | **v1.0.0** | [**Скачать APK**](https://github.com/ReapMan/gymhelper/raw/main/GymHelper-v1.0.0-reapman.apk) | `14.4 МБ` | Первый стабильный релиз |
 
 ### 💡 Как установить или обновить:
-1. Скачайте файл `GymHelper-v1.1.2-reapman.apk` на Android-смартфон.
+1. Скачайте файл `GymHelper-v1.1.3-reapman.apk` на Android-смартфон.
 2. Откройте скачанный файл и подтвердите установку (если потребуется, разрешите браузеру установку неизвестных приложений).
 3. **Обновление без потери данных:** новая версия устанавливается поверх предыдущих, бережно сохраняя все тренировки, программы и базу данных.
 
