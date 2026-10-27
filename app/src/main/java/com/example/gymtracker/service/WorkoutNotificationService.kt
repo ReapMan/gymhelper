@@ -30,15 +30,15 @@ class WorkoutNotificationService : Service() {
         const val EXTRA_IS_RESTING = "extra_is_resting"
 
         fun start(context: Context, title: String, startTime: Long) {
-            val intent = Intent(context, WorkoutNotificationService::class.java).apply {
-                action = ACTION_START
-                putExtra(EXTRA_TITLE, title)
-                putExtra(EXTRA_START_TIME, startTime)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
+            try {
+                val intent = Intent(context, WorkoutNotificationService::class.java).apply {
+                    action = ACTION_START
+                    putExtra(EXTRA_TITLE, title)
+                    putExtra(EXTRA_START_TIME, startTime)
+                }
                 context.startService(intent)
+            } catch (e: Exception) {
+                android.util.Log.e("WorkoutNotificationService", "Failed to start service", e)
             }
         }
 
@@ -79,35 +79,52 @@ class WorkoutNotificationService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                currentTitle = intent.getStringExtra(EXTRA_TITLE) ?: "Тренировка"
-                currentStartTime = intent.getLongExtra(EXTRA_START_TIME, System.currentTimeMillis())
-                isResting = false
-                restSeconds = 0L
-                val notification = buildNotification()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
+                try {
+                    currentTitle = intent.getStringExtra(EXTRA_TITLE) ?: "Тренировка"
+                    currentStartTime = intent.getLongExtra(EXTRA_START_TIME, System.currentTimeMillis())
+                    isResting = false
+                    restSeconds = 0L
+                    val notification = buildNotification()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                        } else {
+                            0
+                        }
+                        startForeground(NOTIFICATION_ID, notification, serviceType)
                     } else {
-                        0
+                        startForeground(NOTIFICATION_ID, notification)
                     }
-                    startForeground(NOTIFICATION_ID, notification, serviceType)
-                } else {
-                    startForeground(NOTIFICATION_ID, notification)
+                } catch (e: Exception) {
+                    android.util.Log.e("WorkoutNotificationService", "Could not startForeground with type specialUse", e)
+                    try {
+                        val notification = buildNotification()
+                        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        nm.notify(NOTIFICATION_ID, notification)
+                    } catch (_: Exception) {}
                 }
             }
             ACTION_UPDATE -> {
-                if (intent.hasExtra(EXTRA_TITLE)) {
-                    currentTitle = intent.getStringExtra(EXTRA_TITLE) ?: currentTitle
+                try {
+                    if (intent.hasExtra(EXTRA_TITLE)) {
+                        currentTitle = intent.getStringExtra(EXTRA_TITLE) ?: currentTitle
+                    }
+                    isResting = intent.getBooleanExtra(EXTRA_IS_RESTING, false)
+                    restSeconds = intent.getLongExtra(EXTRA_REST_SECONDS, 0L)
+                    val notification = buildNotification()
+                    val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    notificationManager.notify(NOTIFICATION_ID, notification)
+                } catch (e: Exception) {
+                    android.util.Log.e("WorkoutNotificationService", "Failed to update notification", e)
                 }
-                isResting = intent.getBooleanExtra(EXTRA_IS_RESTING, false)
-                restSeconds = intent.getLongExtra(EXTRA_REST_SECONDS, 0L)
-                val notification = buildNotification()
-                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.notify(NOTIFICATION_ID, notification)
             }
             ACTION_STOP -> {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
+                try {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                } catch (e: Exception) {
+                    android.util.Log.e("WorkoutNotificationService", "Failed to stop foreground", e)
+                }
             }
         }
         return START_NOT_STICKY

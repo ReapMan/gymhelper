@@ -125,7 +125,7 @@ val StringsKa = AppStrings(
     notificationSettingTitle = "შეტყობინება ფარდაში",
     notificationSettingDesc = "წამმზომი და დასვენების ტაიმერი შეტყობინებების პანელში",
     creatorsLabel = "შემქმნელები: reapman & Antigravity",
-    appVersionLabel = "ვერსია 1.1.1",
+    appVersionLabel = "ვერსია 1.1.2",
 
     // Notification Texts
     notifChannelName = "აქტიური ვარჯიში",

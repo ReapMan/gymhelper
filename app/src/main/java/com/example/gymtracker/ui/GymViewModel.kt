@@ -162,23 +162,35 @@ class GymViewModel(
     }
 
     fun startWorkoutNotification() {
-        val ctx = context ?: return
-        if (!_isWorkoutNotificationEnabled.value) return
-        val session = activeSession.value ?: return
-        WorkoutNotificationService.start(ctx, session.title, session.startTime)
+        try {
+            val ctx = context ?: return
+            if (!_isWorkoutNotificationEnabled.value) return
+            val session = activeSession.value ?: return
+            WorkoutNotificationService.start(ctx, session.title, session.startTime)
+        } catch (e: Exception) {
+            android.util.Log.e("GymViewModel", "startWorkoutNotification failed", e)
+        }
     }
 
     fun updateWorkoutNotification() {
-        val ctx = context ?: return
-        if (!_isWorkoutNotificationEnabled.value) return
-        val session = activeSession.value ?: return
-        val isResting = !_isPerformingSet.value
-        WorkoutNotificationService.updateRest(ctx, isResting, _restSeconds.value, session.title)
+        try {
+            val ctx = context ?: return
+            if (!_isWorkoutNotificationEnabled.value) return
+            val session = activeSession.value ?: return
+            val isResting = !_isPerformingSet.value
+            WorkoutNotificationService.updateRest(ctx, isResting, _restSeconds.value, session.title)
+        } catch (e: Exception) {
+            android.util.Log.e("GymViewModel", "updateWorkoutNotification failed", e)
+        }
     }
 
     fun stopWorkoutNotification() {
-        val ctx = context ?: return
-        WorkoutNotificationService.stop(ctx)
+        try {
+            val ctx = context ?: return
+            WorkoutNotificationService.stop(ctx)
+        } catch (e: Exception) {
+            android.util.Log.e("GymViewModel", "stopWorkoutNotification failed", e)
+        }
     }
 
     fun renameActiveSession(newTitle: String) {
