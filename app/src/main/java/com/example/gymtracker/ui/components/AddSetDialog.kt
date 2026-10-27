@@ -70,6 +70,7 @@ fun AddSetDialog(
     isTagsEnabled: Boolean = true,
     availableFeelings: List<String> = emptyList(),
     availableTags: List<String> = emptyList(),
+    quickWeightSteps: List<Float> = listOf(-5f, -2.5f, -0.5f, 0.5f, 2.5f, 5f),
     onDismiss: () -> Unit,
     onConfirm: (weight: Float, reps: Int, tags: List<String>, intensity: String, notes: String, variationId: Long?) -> Unit
 ) {
@@ -194,9 +195,9 @@ fun AddSetDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         FilledTonalIconButton(onClick = {
-                            weight = (((weight - 0.5f) * 10).roundToInt() / 10f).coerceAtLeast(0f)
+                            weight = (((weight - 1.0f) * 10).roundToInt() / 10f).coerceAtLeast(0f)
                         }) {
-                            Icon(Icons.Default.Remove, "-0.5")
+                            Icon(Icons.Default.Remove, "-1")
                         }
 
                         Surface(
@@ -217,27 +218,28 @@ fun AddSetDialog(
                         }
 
                         FilledTonalIconButton(onClick = {
-                            weight = (((weight + 0.5f) * 10).roundToInt() / 10f)
+                            weight = (((weight + 1.0f) * 10).roundToInt() / 10f)
                         }) {
-                            Icon(Icons.Default.Add, "+0.5")
+                            Icon(Icons.Default.Add, "+1")
                         }
                     }
 
-                    // Быстрые шаги веса: -5, -2.5, -0.5, +0.5, +2.5, +5
+                    // Быстрые шаги веса
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
+                            .padding(top = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        listOf(-5f, -2.5f, -0.5f, 0.5f, 2.5f, 5f).forEach { step ->
-                            val label = if (step > 0) "+${if (step % 1 == 0f) step.toInt() else step}" else "${if (step % 1 == 0f) step.toInt() else step}"
+                        quickWeightSteps.forEach { step ->
+                            val formatted = if (step % 1f == 0f) step.toInt().toString() else "%.1f".format(java.util.Locale.US, step)
+                            val label = if (step > 0) "+$formatted" else formatted
                             val isPlus = step > 0
                             Surface(
                                 onClick = {
                                     weight = (((weight + step) * 10).roundToInt() / 10f).coerceAtLeast(0f)
                                 },
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(10.dp),
                                 color = if (isPlus) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) 
                                         else MaterialTheme.colorScheme.surfaceVariant,
                                 border = BorderStroke(
@@ -247,7 +249,7 @@ fun AddSetDialog(
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(38.dp)
+                                    .height(44.dp)
                             ) {
                                 Box(
                                     contentAlignment = Alignment.Center,
@@ -255,7 +257,7 @@ fun AddSetDialog(
                                 ) {
                                     Text(
                                         text = label,
-                                        fontSize = 13.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isPlus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                     )

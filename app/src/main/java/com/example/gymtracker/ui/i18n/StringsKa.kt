@@ -125,8 +125,15 @@ val StringsKa = AppStrings(
     languageSettingDesc = "აირჩიეთ ინტერფეისის ენა",
     notificationSettingTitle = "შეტყობინება ფარდაში",
     notificationSettingDesc = "წამმზომი და დასვენების ტაიმერი შეტყობინებების პანელში",
+    restModeTitle = "დასვენების რეჟიმი",
+    restModeDesc = "წამზომი ან ტაიმერი უკუთვლით",
+    restModeStopwatch = "წამზომი (პირდაპირი ათვლა)",
+    restModeCountdown = "ტაიმერი (უკუთვლა)",
+    defaultRestTimeTitle = "ნაგულისხმევი დასვენების დრო",
+    quickWeightStepsTitle = "სწრაფი წონის ბიჯები",
+    quickWeightStepsDesc = "± წონის ღილაკები მისვლების დიალოგში",
     creatorsLabel = "შემქმნელები: reapman & Antigravity",
-    appVersionLabel = "ვერსია 1.1.3",
+    appVersionLabel = "ვერსია 1.1.4",
 
     // Notification Texts
     notifChannelName = "აქტიური ვარჯიში",

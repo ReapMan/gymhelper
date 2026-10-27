@@ -125,8 +125,15 @@ val StringsRu = AppStrings(
     languageSettingDesc = "Выберите язык интерфейса",
     notificationSettingTitle = "Уведомление в шторке",
     notificationSettingDesc = "Секундомер и таймер отдыха в панели уведомлений и на экране блокировки",
+    restModeTitle = "Режим отдыха",
+    restModeDesc = "Секундомер или таймер с обратным отсчетом",
+    restModeStopwatch = "Секундомер (прямой отсчёт)",
+    restModeCountdown = "Таймер (обратный отсчёт)",
+    defaultRestTimeTitle = "Время отдыха по умолчанию",
+    quickWeightStepsTitle = "Шаги быстрого веса",
+    quickWeightStepsDesc = "Варианты кнопок ± веса в диалогах подходов",
     creatorsLabel = "Создатели: reapman & Antigravity",
-    appVersionLabel = "Версия 1.1.3",
+    appVersionLabel = "Версия 1.1.4",
 
     // Notification Texts
     notifChannelName = "Активная тренировка",

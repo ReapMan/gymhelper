@@ -28,6 +28,8 @@ class WorkoutNotificationService : Service() {
         const val EXTRA_START_TIME = "extra_start_time"
         const val EXTRA_REST_SECONDS = "extra_rest_seconds"
         const val EXTRA_IS_RESTING = "extra_is_resting"
+        const val EXTRA_IS_COUNTDOWN = "extra_is_countdown"
+        const val EXTRA_REMAINING_SECONDS = "extra_remaining_seconds"
 
         fun start(context: Context, title: String, startTime: Long) {
             try {
@@ -42,11 +44,20 @@ class WorkoutNotificationService : Service() {
             }
         }
 
-        fun updateRest(context: Context, isResting: Boolean, restSeconds: Long, title: String? = null) {
+        fun updateRest(
+            context: Context,
+            isResting: Boolean,
+            restSeconds: Long,
+            title: String? = null,
+            isCountdown: Boolean = false,
+            remainingSeconds: Long = 0L
+        ) {
             val intent = Intent(context, WorkoutNotificationService::class.java).apply {
                 action = ACTION_UPDATE
                 putExtra(EXTRA_IS_RESTING, isResting)
                 putExtra(EXTRA_REST_SECONDS, restSeconds)
+                putExtra(EXTRA_IS_COUNTDOWN, isCountdown)
+                putExtra(EXTRA_REMAINING_SECONDS, remainingSeconds)
                 if (title != null) putExtra(EXTRA_TITLE, title)
             }
             try {
@@ -68,6 +79,8 @@ class WorkoutNotificationService : Service() {
     private var currentStartTime: Long = 0L
     private var isResting: Boolean = false
     private var restSeconds: Long = 0L
+    private var isCountdown: Boolean = false
+    private var remainingSeconds: Long = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -111,6 +124,8 @@ class WorkoutNotificationService : Service() {
                     }
                     isResting = intent.getBooleanExtra(EXTRA_IS_RESTING, false)
                     restSeconds = intent.getLongExtra(EXTRA_REST_SECONDS, 0L)
+                    isCountdown = intent.getBooleanExtra(EXTRA_IS_COUNTDOWN, false)
+                    remainingSeconds = intent.getLongExtra(EXTRA_REMAINING_SECONDS, 0L)
                     val notification = buildNotification()
                     val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     notificationManager.notify(NOTIFICATION_ID, notification)
@@ -164,7 +179,11 @@ class WorkoutNotificationService : Service() {
         }
 
         val subText = if (isResting) {
-            "⏱ Отдых: ${formatSeconds(restSeconds)}"
+            if (isCountdown) {
+                if (remainingSeconds > 0) "⏳ Отдых: ${formatSeconds(remainingSeconds)}" else "🔔 Отдых завершён!"
+            } else {
+                "⏱ Отдых: ${formatSeconds(restSeconds)}"
+            }
         } else {
             "Идет тренировка"
         }

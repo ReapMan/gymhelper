@@ -43,6 +43,12 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.FilledTonalIconButton
+import com.example.gymtracker.ui.QuickWeightStepVariant
+import com.example.gymtracker.ui.RestTimerMode
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -334,6 +340,9 @@ fun MenuScreen(
             val isSetTagsEnabled by viewModel.isSetTagsEnabled.collectAsState()
             val availableFeelings by viewModel.availableFeelings.collectAsState()
             val availableTags by viewModel.availableTags.collectAsState()
+            val quickWeightStepsVariant by viewModel.quickWeightStepsVariant.collectAsState()
+            val restTimerMode by viewModel.restTimerMode.collectAsState()
+            val defaultRestSeconds by viewModel.defaultRestSeconds.collectAsState()
 
             var showAddFeelingDialog by remember { mutableStateOf(false) }
             var newFeelingText by remember { mutableStateOf("") }
@@ -489,6 +498,320 @@ fun MenuScreen(
                                 checkedTrackColor = MaterialTheme.colorScheme.primary
                             )
                         )
+                    }
+                }
+
+                // КАРТОЧКА: РЕЖИМ ОТДЫХА (СЕКУНДОМЕР / ТАЙМЕР)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(strings.restModeTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(
+                                    strings.restModeDesc,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Опция 1: Секундомер
+                            val isStopwatch = restTimerMode == RestTimerMode.STOPWATCH
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { viewModel.setRestTimerMode(RestTimerMode.STOPWATCH) },
+                                color = if (isStopwatch) SurfaceVariantDark else SurfaceDark,
+                                shape = RoundedCornerShape(12.dp),
+                                border = if (isStopwatch) {
+                                    BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                } else {
+                                    BorderStroke(1.dp, BorderDark)
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = strings.restModeStopwatch,
+                                            fontWeight = if (isStopwatch) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 14.sp,
+                                            color = if (isStopwatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Прямой отсчет времени от 00:00 вверх без ограничений",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    if (isStopwatch) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Опция 2: Таймер с обратным отсчетом
+                            val isCountdown = restTimerMode == RestTimerMode.COUNTDOWN
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { viewModel.setRestTimerMode(RestTimerMode.COUNTDOWN) },
+                                color = if (isCountdown) SurfaceVariantDark else SurfaceDark,
+                                shape = RoundedCornerShape(12.dp),
+                                border = if (isCountdown) {
+                                    BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                } else {
+                                    BorderStroke(1.dp, BorderDark)
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = strings.restModeCountdown,
+                                            fontWeight = if (isCountdown) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 14.sp,
+                                            color = if (isCountdown) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Обратный отсчет с сигналом вибрации и регулировкой прямо на тренировке",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    if (isCountdown) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Если выбран режим таймера: настройка времени по умолчанию
+                        if (restTimerMode == RestTimerMode.COUNTDOWN) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = strings.defaultRestTimeTitle,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            // Быстрые чипы пресетов времени
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                listOf(30L, 60L, 90L, 120L, 180L).forEach { sec ->
+                                    val isCurrent = defaultRestSeconds == sec
+                                    Surface(
+                                        onClick = { viewModel.setDefaultRestSeconds(sec) },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                                                else MaterialTheme.colorScheme.surfaceVariant,
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isCurrent) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                                        ),
+                                        modifier = Modifier.weight(1f).height(36.dp)
+                                    ) {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Text(
+                                                text = if (sec >= 60 && sec % 60 == 0L) "${sec / 60}м" else "${sec}с",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Степпер тонкой настройки
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                FilledTonalIconButton(
+                                    onClick = { viewModel.setDefaultRestSeconds((defaultRestSeconds - 15L).coerceAtLeast(15L)) }
+                                ) {
+                                    Icon(Icons.Default.Remove, contentDescription = "-15 сек")
+                                }
+
+                                Text(
+                                    text = "%02d:%02d (%d сек)".format(defaultRestSeconds / 60, defaultRestSeconds % 60, defaultRestSeconds),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                FilledTonalIconButton(
+                                    onClick = { viewModel.setDefaultRestSeconds(defaultRestSeconds + 15L) }
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = "+15 сек")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // КАРТОЧКА: ШАГИ БЫСТРОГО ВЕСА
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.FitnessCenter,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(strings.quickWeightStepsTitle, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(
+                                    strings.quickWeightStepsDesc,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            QuickWeightStepVariant.entries.forEach { variant ->
+                                val isSelected = quickWeightStepsVariant == variant
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { viewModel.setQuickWeightStepsVariant(variant) },
+                                    color = if (isSelected) SurfaceVariantDark else SurfaceDark,
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = if (isSelected) {
+                                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                    } else {
+                                        BorderStroke(1.dp, BorderDark)
+                                    }
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = variant.title,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    fontSize = 14.sp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    text = if (variant == QuickWeightStepVariant.STANDARD) "Стандартный набор для базовых штанг и тренажеров"
+                                                           else "Точный набор с микрошагом 0.3 кг и для гантелей",
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+
+                                            if (isSelected) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
+
+                                        // Превью кнопок
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            variant.steps.forEach { step ->
+                                                val formatted = if (step % 1f == 0f) step.toInt().toString() else "%.1f".format(java.util.Locale.US, step)
+                                                val label = if (step > 0) "+$formatted" else formatted
+                                                val isPlus = step > 0
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = if (isPlus) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                                            else MaterialTheme.colorScheme.surfaceVariant,
+                                                    modifier = Modifier.weight(1f).height(28.dp)
+                                                ) {
+                                                    Box(
+                                                        contentAlignment = Alignment.Center,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    ) {
+                                                        Text(
+                                                            text = label,
+                                                            fontSize = 11.sp,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            color = if (isPlus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 

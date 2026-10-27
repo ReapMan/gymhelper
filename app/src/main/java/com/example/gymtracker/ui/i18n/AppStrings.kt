@@ -127,6 +127,13 @@ data class AppStrings(
     val languageSettingDesc: String,
     val notificationSettingTitle: String,
     val notificationSettingDesc: String,
+    val restModeTitle: String,
+    val restModeDesc: String,
+    val restModeStopwatch: String,
+    val restModeCountdown: String,
+    val defaultRestTimeTitle: String,
+    val quickWeightStepsTitle: String,
+    val quickWeightStepsDesc: String,
     val creatorsLabel: String,
     val appVersionLabel: String,
 

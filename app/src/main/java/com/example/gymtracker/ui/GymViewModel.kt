@@ -1,6 +1,10 @@
 package com.example.gymtracker.ui
 
 import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -29,6 +33,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+enum class QuickWeightStepVariant(val id: String, val title: String, val steps: List<Float>) {
+    STANDARD("standard", "±0.5 / ±2.5 / ±5 кг", listOf(-5f, -2.5f, -0.5f, 0.5f, 2.5f, 5f)),
+    MICRO("micro", "±0.3 / ±0.5 / ±2.5 кг", listOf(-2.5f, -0.5f, -0.3f, 0.3f, 0.5f, 2.5f));
+
+    companion object {
+        fun fromId(id: String?): QuickWeightStepVariant {
+            return entries.find { it.id == id } ?: STANDARD
+        }
+    }
+}
+
+enum class RestTimerMode(val id: String, val title: String) {
+    STOPWATCH("stopwatch", "Секундомер (прямой отсчёт)"),
+    COUNTDOWN("countdown", "Таймер (обратный отсчёт)");
+
+    companion object {
+        fun fromId(id: String?): RestTimerMode {
+            return entries.find { it.id == id } ?: STOPWATCH
+        }
+    }
+}
 
 enum class ScreenTab {
     WORKOUT,
@@ -161,6 +187,89 @@ class GymViewModel(
         appPrefs?.edit()?.putString("available_tags_csv", defaultTagsList.joinToString(","))?.apply()
     }
 
+    // Шаги быстрого веса в диалогах добавления подходов
+    private val _quickWeightStepsVariant = MutableStateFlow(
+        QuickWeightStepVariant.fromId(appPrefs?.getString("quick_weight_steps_variant", QuickWeightStepVariant.STANDARD.id))
+    )
+    val quickWeightStepsVariant: StateFlow<QuickWeightStepVariant> = _quickWeightStepsVariant.asStateFlow()
+
+    fun setQuickWeightStepsVariant(variant: QuickWeightStepVariant) {
+        _quickWeightStepsVariant.value = variant
+        appPrefs?.edit()?.putString("quick_weight_steps_variant", variant.id)?.apply()
+    }
+
+    // Режим отдыха: Секундомер vs Таймер
+    private val _restTimerMode = MutableStateFlow(
+        RestTimerMode.fromId(appPrefs?.getString("rest_timer_mode", RestTimerMode.STOPWATCH.id))
+    )
+    val restTimerMode: StateFlow<RestTimerMode> = _restTimerMode.asStateFlow()
+
+    fun setRestTimerMode(mode: RestTimerMode) {
+        _restTimerMode.value = mode
+        appPrefs?.edit()?.putString("rest_timer_mode", mode.id)?.apply()
+        updateWorkoutNotification()
+    }
+
+    // Время отдыха по умолчанию (в секундах) для таймера обратного отсчета
+    private val _defaultRestSeconds = MutableStateFlow(
+        appPrefs?.getLong("default_rest_seconds", 60L) ?: 60L
+    )
+    val defaultRestSeconds: StateFlow<Long> = _defaultRestSeconds.asStateFlow()
+
+    fun setDefaultRestSeconds(seconds: Long) {
+        val safeSeconds = seconds.coerceAtLeast(10L)
+        _defaultRestSeconds.value = safeSeconds
+        appPrefs?.edit()?.putLong("default_rest_seconds", safeSeconds)?.apply()
+    }
+
+    // Текущая цель таймера отдыха (может корректироваться прямо во время отдыха)
+    private val _targetRestSeconds = MutableStateFlow(
+        appPrefs?.getLong("default_rest_seconds", 60L) ?: 60L
+    )
+    val targetRestSeconds: StateFlow<Long> = _targetRestSeconds.asStateFlow()
+
+    fun adjustTargetRestSeconds(deltaSeconds: Long) {
+        val currentRemaining = _targetRestSeconds.value - _restSeconds.value
+        if (currentRemaining <= 0 && deltaSeconds > 0) {
+            _targetRestSeconds.value = _restSeconds.value + deltaSeconds
+        } else {
+            val newTarget = (_targetRestSeconds.value + deltaSeconds).coerceAtLeast(10L)
+            _targetRestSeconds.value = newTarget
+        }
+        updateWorkoutNotification()
+    }
+
+    fun resetRestTimer() {
+        _restSeconds.value = 0L
+        _targetRestSeconds.value = _defaultRestSeconds.value
+        updateWorkoutNotification()
+    }
+
+    fun triggerVibratePattern() {
+        try {
+            val ctx = context ?: return
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                vibratorManager?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                ctx.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            }
+            if (vibrator != null && vibrator.hasVibrator()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val pattern = longArrayOf(0, 350, 200, 350)
+                    val amplitudes = intArrayOf(0, 255, 0, 255)
+                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, -1))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(longArrayOf(0, 350, 200, 350), -1)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("GymViewModel", "triggerVibratePattern failed", e)
+        }
+    }
+
     fun startWorkoutNotification() {
         try {
             val ctx = context ?: return
@@ -178,7 +287,16 @@ class GymViewModel(
             if (!_isWorkoutNotificationEnabled.value) return
             val session = activeSession.value ?: return
             val isResting = !_isPerformingSet.value
-            WorkoutNotificationService.updateRest(ctx, isResting, _restSeconds.value, session.title)
+            val isCountdown = _restTimerMode.value == RestTimerMode.COUNTDOWN
+            val remaining = (_targetRestSeconds.value - _restSeconds.value).coerceAtLeast(0L)
+            WorkoutNotificationService.updateRest(
+                context = ctx,
+                isResting = isResting,
+                restSeconds = _restSeconds.value,
+                title = session.title,
+                isCountdown = isCountdown,
+                remainingSeconds = remaining
+            )
         } catch (e: Exception) {
             android.util.Log.e("GymViewModel", "updateWorkoutNotification failed", e)
         }
@@ -201,7 +319,17 @@ class GymViewModel(
                 gymDao.updateSession(session.copy(title = trimmed))
                 if (_isWorkoutNotificationEnabled.value) {
                     val ctx = context ?: return@launch
-                    WorkoutNotificationService.updateRest(ctx, !_isPerformingSet.value, _restSeconds.value, trimmed)
+                    val isResting = !_isPerformingSet.value
+                    val isCountdown = _restTimerMode.value == RestTimerMode.COUNTDOWN
+                    val remaining = (_targetRestSeconds.value - _restSeconds.value).coerceAtLeast(0L)
+                    WorkoutNotificationService.updateRest(
+                        context = ctx,
+                        isResting = isResting,
+                        restSeconds = _restSeconds.value,
+                        title = trimmed,
+                        isCountdown = isCountdown,
+                        remainingSeconds = remaining
+                    )
                 }
             }
         }
@@ -353,7 +481,10 @@ class GymViewModel(
                     // Секундомер отдыха тикает непрерывно в фоне
                     if (!_isPerformingSet.value) {
                         _restSeconds.value += 1
-                        if (_isWorkoutNotificationEnabled.value && _restSeconds.value % 5 == 0L) {
+                        if (_restTimerMode.value == RestTimerMode.COUNTDOWN && _restSeconds.value == _targetRestSeconds.value) {
+                            triggerVibratePattern()
+                        }
+                        if (_isWorkoutNotificationEnabled.value && (_restSeconds.value % 2 == 0L || (_restTimerMode.value == RestTimerMode.COUNTDOWN && _restSeconds.value == _targetRestSeconds.value))) {
                             updateWorkoutNotification()
                         }
                     }
@@ -369,6 +500,7 @@ class GymViewModel(
         _currentExerciseSeconds.value = 0L
         exerciseDurationMap.clear()
         _restSeconds.value = 0L
+        _targetRestSeconds.value = _defaultRestSeconds.value
         _isPerformingSet.value = false
     }
 
@@ -465,6 +597,7 @@ class GymViewModel(
     fun goToNextExercise() {
         // При переходе к следующему упражнению выключается отдых
         _restSeconds.value = 0L
+        _targetRestSeconds.value = _defaultRestSeconds.value
         _isPerformingSet.value = false
 
         val plan = _workoutPlan.value
@@ -533,6 +666,7 @@ class GymViewModel(
 
             _isPerformingSet.value = false
             _restSeconds.value = 0L
+            _targetRestSeconds.value = _defaultRestSeconds.value
             updateWorkoutNotification()
         }
     }

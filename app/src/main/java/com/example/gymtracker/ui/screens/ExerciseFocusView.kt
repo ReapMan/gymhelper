@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
@@ -68,6 +69,7 @@ import com.example.gymtracker.data.model.Exercise
 import com.example.gymtracker.data.model.ExerciseHistoryDay
 import com.example.gymtracker.data.model.WorkoutSet
 import com.example.gymtracker.ui.GymViewModel
+import com.example.gymtracker.ui.RestTimerMode
 import com.example.gymtracker.ui.components.AddSetDialog
 import com.example.gymtracker.ui.components.EditSetDialog
 import com.example.gymtracker.ui.components.ExerciseIcons
@@ -100,6 +102,10 @@ fun ExerciseFocusView(
     val currentExerciseSeconds by viewModel.currentExerciseSeconds.collectAsState()
     val restSeconds by viewModel.restSeconds.collectAsState()
     val isPerformingSet by viewModel.isPerformingSet.collectAsState()
+
+    val restTimerMode by viewModel.restTimerMode.collectAsState()
+    val targetRestSeconds by viewModel.targetRestSeconds.collectAsState()
+    val quickWeightStepsVariant by viewModel.quickWeightStepsVariant.collectAsState()
 
     val isSetTagsEnabled by viewModel.isSetTagsEnabled.collectAsState()
     val availableFeelings by viewModel.availableFeelings.collectAsState()
@@ -385,19 +391,116 @@ fun ExerciseFocusView(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            Text(
-                                text = strings.restTimer,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = TagColor,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = formatSeconds(restSeconds),
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            if (restTimerMode == RestTimerMode.COUNTDOWN) {
+                                val remaining = targetRestSeconds - restSeconds
+                                val isOver = remaining <= 0
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = if (isOver) "🔔 Отдых завершён!" else "⏳ ${strings.restTimer}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = if (isOver) MaterialTheme.colorScheme.primary else TagColor,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "(план: ${formatSeconds(targetRestSeconds)})",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = if (isOver) "+${formatSeconds(kotlin.math.abs(remaining))}" else formatSeconds(remaining),
+                                    fontSize = 38.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isOver) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                // Быстрые кнопки управления временем отдыха на лету
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(
+                                        onClick = { viewModel.adjustTargetRestSeconds(-30L) },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                                    ) {
+                                        Text(
+                                            text = "-30 с",
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    Surface(
+                                        onClick = { viewModel.adjustTargetRestSeconds(30L) },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+                                    ) {
+                                        Text(
+                                            text = "+30 с",
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+
+                                    Surface(
+                                        onClick = { viewModel.adjustTargetRestSeconds(60L) },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                                    ) {
+                                        Text(
+                                            text = "+1 мин",
+                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = { viewModel.resetRestTimer() },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Refresh,
+                                            contentDescription = "Сброс таймера",
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = strings.restTimer,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = TagColor,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = formatSeconds(restSeconds),
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
@@ -526,6 +629,7 @@ fun ExerciseFocusView(
                 isTagsEnabled = isSetTagsEnabled,
                 availableFeelings = availableFeelings,
                 availableTags = availableTags,
+                quickWeightSteps = quickWeightStepsVariant.steps,
                 onDismiss = { showAddSetDialog = false },
                 onConfirm = { w, r, tags, intensity, notes, varId ->
                     viewModel.recordSetAndStartRest(w, r, tags, intensity, notes)
@@ -542,6 +646,7 @@ fun ExerciseFocusView(
                 isTagsEnabled = isSetTagsEnabled,
                 availableFeelings = availableFeelings,
                 availableTags = availableTags,
+                quickWeightSteps = quickWeightStepsVariant.steps,
                 onDismiss = { setToEdit = null },
                 onConfirm = { updated ->
                     viewModel.updateSet(updated)
